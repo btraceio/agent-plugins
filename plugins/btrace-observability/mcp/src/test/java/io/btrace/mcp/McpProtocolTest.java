@@ -8,6 +8,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -29,6 +30,24 @@ class McpProtocolTest {
   @Test
   void rejectsMalformedJson() {
     assertThrows(IllegalArgumentException.class, () -> McpProtocol.parseJson("{bad}"));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void parsesJsonValuesAndEscapesOutput() {
+    Map<String, Object> parsed =
+        McpProtocol.parseJson("{\"text\":\"a\\n\\u263a\",\"number\":1.5,\"flag\":true,\"none\":null,\"items\":[1,false]}");
+
+    assertEquals("a\n☺", parsed.get("text"));
+    assertEquals(1.5d, parsed.get("number"));
+    assertEquals(Boolean.TRUE, parsed.get("flag"));
+    assertNull(parsed.get("none"));
+    assertEquals(List.of(1, false), parsed.get("items"));
+    Map<String, Object> serializable = new LinkedHashMap<>();
+    serializable.put("value", "line\n\u0001");
+    serializable.put("items", List.of("x", 2));
+    assertEquals(
+        "{\"value\":\"line\\n\\u0001\",\"items\":[\"x\",2]}", McpProtocol.toJson(serializable));
   }
 
   @Test

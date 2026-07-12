@@ -18,3 +18,5 @@ Run its unit tests with:
 ```sh
 ./gradlew test
 ```
+
+`./gradlew check` enforces at least 80% line coverage for the MCP Java code.
