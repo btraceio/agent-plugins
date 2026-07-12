@@ -19,3 +19,6 @@ are on the same host and the operator wants an auditable conversational workflow
 
 The server uses stdio rather than opening a network listener. Keep it local to the target host and
 use SSH, `kubectl exec`, or an approved bastion workflow to run it beside a remote target.
+
+The plugin launches the bundled server with JBang. It loads the single masked BTrace distribution,
+so do not configure legacy `btrace-client.jar`, `btrace-agent.jar`, or `btrace-boot.jar` paths.

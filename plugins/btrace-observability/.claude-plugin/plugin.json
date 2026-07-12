@@ -6,6 +6,14 @@
     "name": "BTrace"
   },
   "license": "Apache-2.0",
+  "mcpServers": {
+    "btrace": {
+      "command": "jbang",
+      "args": [
+        "${CLAUDE_PLUGIN_ROOT}/mcp/src/main/java/io/btrace/mcp/BTraceMcpServer.java"
+      ]
+    }
+  },
   "keywords": [
     "btrace",
     "java",
