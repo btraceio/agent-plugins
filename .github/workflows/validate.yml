@@ -1,0 +1,28 @@
+name: Validate agent plugins
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check agent-plugins
+        uses: actions/checkout@v4
+      - name: Check BTrace source facts
+        uses: actions/checkout@v4
+        with:
+          repository: btraceio/btrace
+          path: btrace
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Validate repository, manifests, and eval corpus
+        env:
+          BTRACE_SOURCE_DIR: ${{ github.workspace }}/btrace
+        run: scripts/validate-marketplace.sh

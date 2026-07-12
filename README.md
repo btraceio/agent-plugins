@@ -40,9 +40,15 @@ pi install git:github.com/btraceio/agent-plugins
 
 ### Codex
 
-Add this repository as a marketplace, then install `btrace-observability` from the
-`BTrace Agent Plugins` catalog. Codex consumes the catalog at
-`.agents/plugins/marketplace.json`.
+Clone this repository and add the checkout as a team marketplace:
+
+```sh
+git clone https://github.com/btraceio/agent-plugins.git
+codex plugin marketplace add /path/to/agent-plugins
+```
+
+Then install `btrace-observability` from the `BTrace Agent Plugins` catalog. Codex consumes the
+catalog at `.agents/plugins/marketplace.json`.
 
 ## Contributing
 
@@ -75,3 +81,7 @@ JSON manifests, skill front matter, the absence of source-documentation URLs in 
 facts against the BTrace checkout. It also validates the provider-neutral observability eval corpus.
 Update `references/btrace-source-facts.txt` together with any intentional change to embedded BTrace
 operational guidance. See [the eval guide](evals/README.md) to score captured model responses.
+
+GitHub Actions runs the same repository checks on pushes and pull requests. See
+[`CONTRIBUTING.md`](CONTRIBUTING.md), [`SECURITY.md`](SECURITY.md), and [`RELEASE.md`](RELEASE.md)
+for contribution, security, and release policy.

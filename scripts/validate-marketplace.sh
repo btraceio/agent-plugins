@@ -4,12 +4,17 @@ set -euo pipefail
 root=$(cd "$(dirname "$0")/.." && pwd)
 cd "$root"
 
-if ! command -v claude >/dev/null 2>&1; then
+if command -v claude >/dev/null 2>&1; then
+  claude plugin validate .
+elif [[ "${REQUIRE_CLAUDE_VALIDATION:-0}" == "1" ]]; then
   echo "error: Claude Code CLI is required for marketplace validation" >&2
   exit 1
+else
+  echo "warning: claude CLI unavailable; skipping Claude-specific validation" >&2
 fi
 
-claude plugin validate .
+node scripts/validate-evals.js
+node scripts/validate-repository.js
 
 node <<'NODE'
 const fs = require('fs');

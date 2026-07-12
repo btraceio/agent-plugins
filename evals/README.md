@@ -17,6 +17,15 @@ Score responses with:
 node scripts/score-evals.js eval-responses.jsonl
 ```
 
+To connect a model/provider-specific runner, make an executable that reads one JSON object from
+stdin (`id`, `prompt`, and `requiredSkills`) and writes the response text to stdout. Run the corpus
+through it with:
+
+```sh
+node scripts/run-evals.js ./my-agent-runner eval-responses.jsonl
+node scripts/score-evals.js eval-responses.jsonl
+```
+
 The scorer is intentionally lexical and advisory: it catches missing operational guardrails and
 obvious unsafe suggestions (while allowing a response to explicitly warn against a dangerous
 pattern), but human review remains necessary for probe correctness.
