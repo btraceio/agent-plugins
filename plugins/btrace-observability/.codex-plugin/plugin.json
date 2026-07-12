@@ -1,0 +1,33 @@
+{
+  "name": "btrace-observability",
+  "version": "0.1.0",
+  "description": "Goal-first incident diagnosis with safe, focused BTrace probes.",
+  "author": {
+    "name": "BTrace",
+    "url": "https://github.com/btraceio"
+  },
+  "repository": "https://github.com/btraceio/agent-plugins",
+  "license": "Apache-2.0",
+  "keywords": [
+    "btrace",
+    "java",
+    "observability",
+    "diagnostics"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "BTrace Observability",
+    "shortDescription": "Diagnose Java behavior with focused probes.",
+    "longDescription": "Turn incident questions into safe, focused BTrace probes and deployment commands.",
+    "developerName": "BTrace",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Guidance"
+    ],
+    "defaultPrompt": [
+      "Show me what happens when this endpoint is called.",
+      "Find why this Java request is slow.",
+      "Trace exceptions from this service method."
+    ]
+  }
+}

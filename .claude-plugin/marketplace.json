@@ -10,6 +10,12 @@
       "description": "BTrace repository conventions and build guidance.",
       "version": "0.1.0",
       "source": "./plugins/btrace-development"
+    },
+    {
+      "name": "btrace-observability",
+      "description": "Goal-first incident diagnosis with safe, focused BTrace probes.",
+      "version": "0.1.0",
+      "source": "./plugins/btrace-observability"
     }
   ]
 }

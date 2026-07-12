@@ -11,7 +11,8 @@
   ],
   "pi": {
     "skills": [
-      "./plugins/btrace-development/skills"
+      "./plugins/btrace-development/skills",
+      "./plugins/btrace-observability/skills"
     ]
   }
 }

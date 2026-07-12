@@ -10,6 +10,7 @@ one another so the workflow instructions and supporting scripts are maintained o
 | Plugin | Purpose |
 | --- | --- |
 | `btrace-development` | Repository conventions and build guidance for BTrace development. |
+| `btrace-observability` | Goal-first help for diagnosing Java applications with BTrace probes. |
 
 ## Layout
 
@@ -28,7 +29,7 @@ plugins/<name>/.codex-plugin/       Codex manifest
 
 ```text
 /plugin marketplace add btraceio/agent-plugins
-/plugin install btrace-development@btraceio-agent-plugins
+/plugin install btrace-observability@btraceio-agent-plugins
 ```
 
 ### Pi
@@ -39,7 +40,7 @@ pi install git:github.com/btraceio/agent-plugins
 
 ### Codex
 
-Add this repository as a marketplace, then install `btrace-development` from the
+Add this repository as a marketplace, then install `btrace-observability` from the
 `BTrace Agent Plugins` catalog. Codex consumes the catalog at
 `.agents/plugins/marketplace.json`.
 

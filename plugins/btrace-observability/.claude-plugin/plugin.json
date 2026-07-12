@@ -1,0 +1,15 @@
+{
+  "name": "btrace-observability",
+  "version": "0.1.0",
+  "description": "Goal-first incident diagnosis with safe, focused BTrace probes.",
+  "author": {
+    "name": "BTrace"
+  },
+  "license": "Apache-2.0",
+  "keywords": [
+    "btrace",
+    "java",
+    "observability",
+    "diagnostics"
+  ]
+}
