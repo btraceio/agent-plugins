@@ -1,0 +1,362 @@
+{
+  "version": "1",
+  "generated_at": "",
+  "source_hash": "sha256:PLACEHOLDER",
+  "scenarios": [
+    {
+      "id": "cpu_hotspot",
+      "group": 1,
+      "description": "N_CPU threads spinning Math.sin/pow; no allocation pressure",
+      "jvm_flags": ["-Xmx256m", "-XX:+UseParallelGC"],
+      "duration_seconds": 30,
+      "file": "cpu_hotspot.jfr",
+      "jdk_version": "",
+      "jfr_event_types": [],
+      "required_event_types": ["jdk.ExecutionSample"],
+      "eval_runs": 5,
+      "expected": {
+        "scoring_tier": "structural",
+        "focusAreas": [
+          {"id": "cpu-hotspots", "impact": "high", "startHere": true}
+        ],
+        "absent_area_ids": ["gc-pressure", "thread-contention"],
+        "crossAreaCorrelations": []
+      }
+    },
+    {
+      "id": "gc_pressure_parallel",
+      "group": 1,
+      "description": "Tight byte[] allocation loop; small heap forces frequent ParallelGC pauses",
+      "jvm_flags": ["-Xmx64m", "-XX:+UseParallelGC"],
+      "duration_seconds": 30,
+      "file": "gc_pressure_parallel.jfr",
+      "jdk_version": "",
+      "jfr_event_types": [],
+      "required_event_types": ["jdk.GCPhasePause"],
+      "eval_runs": 5,
+      "expected": {
+        "scoring_tier": "structural",
+        "focusAreas": [
+          {"id": "gc-pressure", "impact": "high", "startHere": true}
+        ],
+        "absent_area_ids": ["cpu-hotspots"],
+        "crossAreaCorrelations": []
+      }
+    },
+    {
+      "id": "allocation_pressure",
+      "group": 1,
+      "description": "Circular buffer of 100KB objects; promotes without heavy GC",
+      "jvm_flags": ["-Xmx512m", "-XX:+UseParallelGC"],
+      "duration_seconds": 30,
+      "file": "allocation_pressure.jfr",
+      "jdk_version": "",
+      "jfr_event_types": [],
+      "required_event_types": ["jdk.ObjectAllocationSample"],
+      "eval_runs": 5,
+      "expected": {
+        "scoring_tier": "structural",
+        "focusAreas": [
+          {"id": "allocation-pressure", "impact": "moderate", "startHere": true}
+        ],
+        "absent_area_ids": [],
+        "crossAreaCorrelations": []
+      }
+    },
+    {
+      "id": "thread_contention_sync",
+      "group": 1,
+      "description": "4×CPU threads competing on single synchronized method with sleep",
+      "jvm_flags": ["-Xmx256m"],
+      "duration_seconds": 30,
+      "file": "thread_contention_sync.jfr",
+      "jdk_version": "",
+      "jfr_event_types": [],
+      "required_event_types": ["jdk.JavaMonitorEnter"],
+      "eval_runs": 5,
+      "expected": {
+        "scoring_tier": "structural",
+        "focusAreas": [
+          {"id": "thread-contention", "impact": "high", "startHere": true}
+        ],
+        "absent_area_ids": ["gc-pressure"],
+        "crossAreaCorrelations": []
+      }
+    },
+    {
+      "id": "safepoints",
+      "group": 1,
+      "description": "Repeated Class.forName + Method.invoke in a tight loop triggers frequent safepoints",
+      "jvm_flags": ["-Xmx256m"],
+      "duration_seconds": 30,
+      "file": "safepoints.jfr",
+      "jdk_version": "",
+      "jfr_event_types": [],
+      "required_event_types": ["jdk.SafepointBegin"],
+      "eval_runs": 5,
+      "expected": {
+        "scoring_tier": "structural",
+        "focusAreas": [
+          {"id": "safepoints", "impact": "moderate", "startHere": true}
+        ],
+        "absent_area_ids": [],
+        "crossAreaCorrelations": []
+      }
+    },
+    {
+      "id": "temporal_spikes",
+      "group": 1,
+      "description": "5s CPU burst / 5s idle alternating; spike windows visible in stackgraph",
+      "jvm_flags": ["-Xmx256m"],
+      "duration_seconds": 60,
+      "file": "temporal_spikes.jfr",
+      "jdk_version": "",
+      "jfr_event_types": [],
+      "required_event_types": ["jdk.ExecutionSample"],
+      "eval_runs": 5,
+      "expected": {
+        "scoring_tier": "structural",
+        "focusAreas": [
+          {"id": "temporal-spikes", "impact": "moderate", "startHere": true}
+        ],
+        "absent_area_ids": [],
+        "crossAreaCorrelations": []
+      }
+    },
+    {
+      "id": "healthy_baseline",
+      "group": 1,
+      "description": "Minimal sleep-only load; negative test — no HIGH areas expected",
+      "jvm_flags": ["-Xmx256m"],
+      "duration_seconds": 30,
+      "file": "healthy_baseline.jfr",
+      "jdk_version": "",
+      "jfr_event_types": [],
+      "required_event_types": [],
+      "eval_runs": 5,
+      "expected": {
+        "scoring_tier": "structural",
+        "focusAreas": [],
+        "absent_area_ids": ["cpu-hotspots", "gc-pressure", "thread-contention"],
+        "crossAreaCorrelations": []
+      }
+    },
+    {
+      "id": "alloc_gc_cascade",
+      "group": 2,
+      "description": "High alloc + bounded queue(depth=2) + 16 submitters; GC pauses cause queue backlog",
+      "jvm_flags": ["-Xmx128m", "-XX:+UseParallelGC"],
+      "duration_seconds": 30,
+      "file": "alloc_gc_cascade.jfr",
+      "jdk_version": "",
+      "jfr_event_types": [],
+      "required_event_types": ["jdk.GCPhasePause", "jdk.ObjectAllocationSample"],
+      "eval_runs": 5,
+      "expected": {
+        "scoring_tier": "structural",
+        "focusAreas": [
+          {"id": "allocation-pressure", "impact": "high", "startHere": true},
+          {"id": "gc-pressure",         "impact": "high", "startHere": true},
+          {"id": "thread-contention",   "impact": "moderate", "startHere": false}
+        ],
+        "absent_area_ids": [],
+        "crossAreaCorrelations": [
+          {"kind": "alloc-gc-latency-cascade"}
+        ]
+      }
+    },
+    {
+      "id": "gc_cpu_inflation",
+      "group": 2,
+      "description": "Fast byte[512] alloc loop; G1 GC workers drive CPU above 60%; app threads trivial",
+      "jvm_flags": ["-XX:+UseG1GC", "-Xmx128m"],
+      "duration_seconds": 30,
+      "file": "gc_cpu_inflation.jfr",
+      "jdk_version": "",
+      "jfr_event_types": [],
+      "required_event_types": ["jdk.GCPhasePause", "jdk.ExecutionSample"],
+      "eval_runs": 5,
+      "expected": {
+        "scoring_tier": "structural",
+        "focusAreas": [
+          {"id": "gc-pressure",  "impact": "high", "startHere": true},
+          {"id": "cpu-hotspots", "impact": "moderate", "startHere": false}
+        ],
+        "absent_area_ids": [],
+        "crossAreaCorrelations": [
+          {"kind": "gc-cpu-inflation"}
+        ]
+      }
+    },
+    {
+      "id": "gc_queue_coupling",
+      "group": 2,
+      "description": "Moderate alloc + 2-thread pool; trivial tasks queue up during GC stop-the-world pauses",
+      "jvm_flags": ["-Xmx128m", "-XX:+UseParallelGC"],
+      "duration_seconds": 30,
+      "file": "gc_queue_coupling.jfr",
+      "jdk_version": "",
+      "jfr_event_types": [],
+      "required_event_types": ["jdk.GCPhasePause"],
+      "eval_runs": 5,
+      "expected": {
+        "scoring_tier": "structural",
+        "focusAreas": [
+          {"id": "gc-pressure",       "impact": "high", "startHere": true},
+          {"id": "thread-contention", "impact": "moderate", "startHere": false}
+        ],
+        "absent_area_ids": [],
+        "crossAreaCorrelations": [
+          {"kind": "gc-queue-coupling"}
+        ]
+      }
+    },
+    {
+      "id": "reactive_no_backpressure",
+      "group": 3,
+      "description": "Flux.interval(1ms) with slow subscriber (10ms/item), no backpressure operator",
+      "jvm_flags": ["-Xmx256m"],
+      "duration_seconds": 30,
+      "file": "reactive_no_backpressure.jfr",
+      "jdk_version": "",
+      "jfr_event_types": [],
+      "required_event_types": ["jdk.JavaMonitorEnter"],
+      "eval_runs": 5,
+      "expected": {
+        "scoring_tier": "structural",
+        "focusAreas": [
+          {"id": "thread-contention", "impact": "high", "startHere": true}
+        ],
+        "absent_area_ids": [],
+        "crossAreaCorrelations": [],
+        "rubric": {
+          "bottleneck_category": "concurrency",
+          "severity": "high",
+          "required_evidence_keywords": ["producer", "subscriber", "backpressure", "queue"],
+          "must_not_hallucinate": ["gc-pressure"],
+          "judge_question": "Did the skill identify that the producer emits faster than the subscriber can process, causing thread saturation due to missing backpressure handling?"
+        }
+      }
+    },
+    {
+      "id": "reactive_backpressure",
+      "group": 3,
+      "description": "Same Flux pipeline with onBackpressureBuffer(256); negative test",
+      "jvm_flags": ["-Xmx256m"],
+      "duration_seconds": 30,
+      "file": "reactive_backpressure.jfr",
+      "jdk_version": "",
+      "jfr_event_types": [],
+      "required_event_types": [],
+      "eval_runs": 5,
+      "expected": {
+        "scoring_tier": "structural",
+        "focusAreas": [],
+        "absent_area_ids": ["gc-pressure", "cpu-hotspots"],
+        "crossAreaCorrelations": []
+      }
+    },
+    {
+      "id": "cf_fanout_large_heap",
+      "group": 3,
+      "description": "40 CompletableFuture tasks each holding 50MB byte[] live until all complete (2GB peak)",
+      "jvm_flags": ["-Xmx4g", "-XX:+UseG1GC"],
+      "duration_seconds": 30,
+      "file": "cf_fanout_large_heap.jfr",
+      "jdk_version": "",
+      "jfr_event_types": [],
+      "required_event_types": ["jdk.ObjectAllocationSample", "jdk.GCPhasePause"],
+      "eval_runs": 5,
+      "expected": {
+        "scoring_tier": "structural",
+        "focusAreas": [
+          {"id": "allocation-pressure", "impact": "high", "startHere": true},
+          {"id": "gc-pressure",         "impact": "high", "startHere": true},
+          {"id": "thread-contention",   "impact": "moderate", "startHere": false}
+        ],
+        "absent_area_ids": [],
+        "crossAreaCorrelations": [
+          {"kind": "alloc-gc-latency-cascade"}
+        ],
+        "rubric": {
+          "bottleneck_category": "memory-gc",
+          "severity": "high",
+          "required_evidence_keywords": ["future", "heap", "allocation", "concurrent"],
+          "must_not_hallucinate": ["safepoints"],
+          "judge_question": "Did the skill identify that async fan-out tasks hold large byte arrays live simultaneously, creating allocation pressure and GC cascade?"
+        }
+      }
+    },
+    {
+      "id": "g1_humongous_alloc",
+      "group": 4,
+      "description": "Continuous new byte[600_000]; G1HeapRegionSize=1m so objects exceed region/2 threshold",
+      "jvm_flags": ["-XX:+UseG1GC", "-XX:G1HeapRegionSize=1m", "-Xmx512m"],
+      "duration_seconds": 30,
+      "file": "g1_humongous_alloc.jfr",
+      "jdk_version": "",
+      "jfr_event_types": [],
+      "required_event_types": ["jdk.GCPhasePause"],
+      "eval_runs": 5,
+      "expected": {
+        "scoring_tier": "semantic",
+        "focusAreas": [],
+        "absent_area_ids": [],
+        "crossAreaCorrelations": [],
+        "rubric": {
+          "bottleneck_category": "memory-gc",
+          "severity": "high",
+          "required_evidence_keywords": ["humongous", "region", "fragmentation"],
+          "must_not_hallucinate": ["cpu-hotspot", "thread-contention"],
+          "judge_question": "Did the skill correctly identify that large object allocations are being placed in G1 humongous regions and causing fragmentation or premature full GC?"
+        }
+      }
+    },
+    {
+      "id": "zgc_allocation_stalls",
+      "group": 4,
+      "description": "Very high allocation rate overwhelms ZGC concurrent collection; triggers allocation stalls",
+      "jvm_flags": ["-XX:+UseZGC", "-Xmx256m"],
+      "duration_seconds": 30,
+      "file": "zgc_allocation_stalls.jfr",
+      "jdk_version": "",
+      "jfr_event_types": [],
+      "required_event_types": ["jdk.GCPhasePause"],
+      "eval_runs": 5,
+      "expected": {
+        "scoring_tier": "semantic",
+        "focusAreas": [],
+        "absent_area_ids": [],
+        "crossAreaCorrelations": [],
+        "rubric": {
+          "bottleneck_category": "memory-gc",
+          "severity": "high",
+          "required_evidence_keywords": ["allocation stall", "ZGC", "concurrent", "throughput"],
+          "must_not_hallucinate": ["cpu-hotspot"],
+          "judge_question": "Did the skill identify that the allocation rate exceeds ZGC's concurrent collection throughput, causing allocation stalls (threads blocked waiting for GC to free memory)?"
+        }
+      }
+    },
+    {
+      "id": "virtual_thread_pinning",
+      "group": 4,
+      "description": "Virtual threads pinned inside synchronized block; JDK 21+ only",
+      "jvm_flags": ["-Xmx256m"],
+      "duration_seconds": 30,
+      "file": "virtual_thread_pinning.jfr",
+      "jdk_version": "",
+      "jfr_event_types": [],
+      "required_event_types": ["jdk.VirtualThreadPinned"],
+      "eval_runs": 5,
+      "expected": {
+        "scoring_tier": "structural",
+        "focusAreas": [
+          {"id": "virtual-thread-pinning", "impact": "high", "startHere": true}
+        ],
+        "absent_area_ids": [],
+        "crossAreaCorrelations": [],
+        "skip_if_jdk_lt": 21
+      }
+    }
+  ]
+}

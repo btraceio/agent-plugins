@@ -12,7 +12,9 @@
   "pi": {
     "skills": [
       "./plugins/btrace-development/skills",
-      "./plugins/btrace-observability/skills"
+      "./plugins/btrace-observability/skills",
+      "./plugins/jfr-analyzer/skills",
+      "./plugins/perf-engineer/skills"
     ]
   }
 }

@@ -1,0 +1,13 @@
+# Eval run outputs — too large and transient for git
+eval/results/
+
+# OTLP and pprof derived from corpus JFR at run time
+eval/corpus/*.jfr
+eval/corpus/*.otlp
+eval/corpus/*.pprof
+eval/corpus/*.pb.gz
+
+# Python scorer venv
+eval/scripts/.venv/
+eval/scripts/__pycache__/
+eval/scripts/*.pyc

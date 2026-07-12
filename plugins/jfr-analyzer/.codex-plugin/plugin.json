@@ -1,0 +1,36 @@
+{
+  "name": "jfr-analyzer",
+  "version": "0.1.0",
+  "description": "Systematic performance investigation of JFR, pprof, OTLP, and HPROF profiles.",
+  "author": {
+    "name": "BTrace",
+    "url": "https://github.com/btraceio"
+  },
+  "repository": "https://github.com/btraceio/agent-plugins",
+  "license": "Apache-2.0",
+  "keywords": [
+    "jfr",
+    "java",
+    "performance",
+    "profiling",
+    "observability"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "JFR Analyzer",
+    "shortDescription": "Investigate JVM profiles systematically.",
+    "longDescription": "Analyze JFR and related profile formats with USE/TSA reasoning, structured evidence, and optional BTrace live-probe correlation.",
+    "developerName": "BTrace",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Guidance",
+      "Analysis"
+    ],
+    "defaultPrompt": [
+      "Analyze this JFR recording and explain the biggest bottleneck.",
+      "Find the cause of these JVM latency spikes.",
+      "Correlate this profile with a live BTrace investigation."
+    ]
+  }
+}

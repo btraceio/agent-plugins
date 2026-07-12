@@ -11,6 +11,8 @@ one another so the workflow instructions and supporting scripts are maintained o
 | --- | --- |
 | `btrace-development` | Repository conventions and build guidance for BTrace development. |
 | [`btrace-observability`](plugins/btrace-observability/README.md) | A composable SRE skill suite for diagnosing Java applications with BTrace probes. |
+| [`jfr-analyzer`](plugins/jfr-analyzer/README.md) | Systematic profile analysis with optional BTrace live-probe correlation. |
+| [`perf-engineer`](plugins/perf-engineer/README.md) | Evidence-driven optimization investigations with JFR, BTrace, and JMH. |
 
 ## Layout
 
