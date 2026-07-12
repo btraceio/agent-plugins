@@ -1,0 +1,20 @@
+{
+  "name": "btraceio-agent-plugins",
+  "interface": {
+    "displayName": "BTrace Agent Plugins"
+  },
+  "plugins": [
+    {
+      "name": "btrace-development",
+      "source": {
+        "source": "local",
+        "path": "./plugins/btrace-development"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "name": "btrace-development",
+  "version": "0.1.0",
+  "description": "BTrace repository conventions and build guidance.",
+  "author": {
+    "name": "BTrace"
+  },
+  "license": "Apache-2.0",
+  "keywords": [
+    "btrace",
+    "java",
+    "observability"
+  ]
+}

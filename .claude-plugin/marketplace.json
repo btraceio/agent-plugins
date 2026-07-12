@@ -1,0 +1,15 @@
+{
+  "name": "btraceio-agent-plugins",
+  "description": "BTrace development plugins for Claude Code, Codex, and Pi.",
+  "owner": {
+    "name": "BTrace"
+  },
+  "plugins": [
+    {
+      "name": "btrace-development",
+      "description": "BTrace repository conventions and build guidance.",
+      "version": "0.1.0",
+      "source": "./plugins/btrace-development"
+    }
+  ]
+}

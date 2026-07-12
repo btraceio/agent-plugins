@@ -1,0 +1,30 @@
+{
+  "name": "btrace-development",
+  "version": "0.1.0",
+  "description": "BTrace repository conventions and build guidance.",
+  "author": {
+    "name": "BTrace",
+    "url": "https://github.com/btraceio"
+  },
+  "repository": "https://github.com/btraceio/agent-plugins",
+  "license": "Apache-2.0",
+  "keywords": [
+    "btrace",
+    "java",
+    "observability"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "BTrace Development",
+    "shortDescription": "BTrace repository conventions.",
+    "longDescription": "Build, test, and package BTrace changes using its repository conventions.",
+    "developerName": "BTrace",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Guidance"
+    ],
+    "defaultPrompt": [
+      "Help me implement and test a BTrace change."
+    ]
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "@btraceio/agent-plugins",
+  "version": "0.1.0",
+  "private": true,
+  "description": "BTrace Agent Skills package for Pi.",
+  "license": "Apache-2.0",
+  "keywords": [
+    "btrace",
+    "pi-package",
+    "agent-skills"
+  ],
+  "pi": {
+    "skills": [
+      "./plugins/btrace-development/skills"
+    ]
+  }
+}
