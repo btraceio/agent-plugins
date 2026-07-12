@@ -40,23 +40,18 @@ public final class ListProbesHandler {
   public static Map<String, Object> schema() {
     Map<String, Object> tool = new LinkedHashMap<>();
     tool.put("name", "list_probes");
-    tool.put(
-        "description",
-        "List BTrace probes on a running JVM that have been detached from and are available to "
-            + "reconnect to (via the plain CLI's -r flag). Probes still connected to their "
-            + "original client are not listed here, since their output is already streaming to "
-            + "that client.");
+    tool.put("description", "List detached probes available to reconnect.");
 
     Map<String, Object> properties = new LinkedHashMap<>();
 
     Map<String, Object> pidProp = new LinkedHashMap<>();
     pidProp.put("type", "string");
-    pidProp.put("description", "PID of the target JVM");
+    pidProp.put("description", "Target JVM PID.");
     properties.put("pid", pidProp);
 
     Map<String, Object> portProp = new LinkedHashMap<>();
     portProp.put("type", "integer");
-    portProp.put("description", "BTrace agent port (default: 2020)");
+    portProp.put("description", "Agent port (2020).");
     properties.put("port", portProp);
 
     List<String> required = new ArrayList<>();

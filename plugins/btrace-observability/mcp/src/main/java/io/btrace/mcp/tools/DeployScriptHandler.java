@@ -42,24 +42,18 @@ public final class DeployScriptHandler {
   public static Map<String, Object> schema() {
     Map<String, Object> tool = new LinkedHashMap<>();
     tool.put("name", "deploy_script");
-    tool.put(
-        "description",
-        "Deploy a full BTrace Java script to a running JVM. "
-            + "The script must be a valid BTrace program with @BTrace annotation. "
-            + "Use this for complex instrumentation that cannot be expressed as a oneliner.");
+    tool.put("description", "Deploy a BTrace script.");
 
     Map<String, Object> properties = new LinkedHashMap<>();
 
     Map<String, Object> pidProp = new LinkedHashMap<>();
     pidProp.put("type", "string");
-    pidProp.put("description", "PID of the target JVM (use list_jvms to find it)");
+    pidProp.put("description", "Target JVM PID.");
     properties.put("pid", pidProp);
 
     Map<String, Object> scriptProp = new LinkedHashMap<>();
     scriptProp.put("type", "string");
-    scriptProp.put(
-        "description",
-        "Full BTrace Java source code. Must include @BTrace annotation and proper imports.");
+    scriptProp.put("description", "BTrace Java source.");
     properties.put("script", scriptProp);
 
     Map<String, Object> argsProp = new LinkedHashMap<>();
@@ -67,12 +61,12 @@ public final class DeployScriptHandler {
     Map<String, Object> argsItems = new LinkedHashMap<>();
     argsItems.put("type", "string");
     argsProp.put("items", argsItems);
-    argsProp.put("description", "Optional arguments to pass to the BTrace script");
+    argsProp.put("description", "Script arguments.");
     properties.put("args", argsProp);
 
     Map<String, Object> portProp = new LinkedHashMap<>();
     portProp.put("type", "integer");
-    portProp.put("description", "BTrace agent port (default: 2020)");
+    portProp.put("description", "Agent port (2020).");
     properties.put("port", portProp);
 
     List<String> required = new ArrayList<>();

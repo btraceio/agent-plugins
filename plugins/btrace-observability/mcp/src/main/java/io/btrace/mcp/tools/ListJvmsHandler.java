@@ -36,11 +36,7 @@ public final class ListJvmsHandler {
   public static Map<String, Object> schema() {
     Map<String, Object> tool = new LinkedHashMap<>();
     tool.put("name", "list_jvms");
-    tool.put(
-        "description",
-        "List all attachable Java Virtual Machines on this host. "
-            + "Returns PID, main class, and whether BTrace is already attached (+/-). "
-            + "Use this to find the PID of the JVM you want to instrument.");
+    tool.put("description", "List local attachable JVMs.");
     // No input parameters needed
     Map<String, Object> inputSchema = new LinkedHashMap<>();
     inputSchema.put("type", "object");

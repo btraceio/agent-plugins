@@ -36,27 +36,23 @@ public final class SendEventHandler {
   public static Map<String, Object> schema() {
     Map<String, Object> tool = new LinkedHashMap<>();
     tool.put("name", "send_event");
-    tool.put(
-        "description",
-        "Send an event to a running BTrace probe. "
-            + "Events can trigger @OnEvent handlers in the probe script. "
-            + "If no event_name is specified, an unnamed event is sent.");
+    tool.put("description", "Send an event to an active probe.");
 
     Map<String, Object> properties = new LinkedHashMap<>();
 
     Map<String, Object> pidProp = new LinkedHashMap<>();
     pidProp.put("type", "string");
-    pidProp.put("description", "PID of the target JVM");
+    pidProp.put("description", "Target JVM PID.");
     properties.put("pid", pidProp);
 
     Map<String, Object> eventNameProp = new LinkedHashMap<>();
     eventNameProp.put("type", "string");
-    eventNameProp.put("description", "Name of the event to send (optional)");
+    eventNameProp.put("description", "Optional event name.");
     properties.put("event_name", eventNameProp);
 
     Map<String, Object> portProp = new LinkedHashMap<>();
     portProp.put("type", "integer");
-    portProp.put("description", "BTrace agent port (default: 2020)");
+    portProp.put("description", "Agent port (2020).");
     properties.put("port", portProp);
 
     List<String> required = new ArrayList<>();

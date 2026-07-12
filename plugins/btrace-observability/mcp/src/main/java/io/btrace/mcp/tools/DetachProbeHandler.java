@@ -39,21 +39,18 @@ public final class DetachProbeHandler {
   public static Map<String, Object> schema() {
     Map<String, Object> tool = new LinkedHashMap<>();
     tool.put("name", "detach_probe");
-    tool.put(
-        "description",
-        "Detach from a running BTrace probe. The probe continues running on the target JVM "
-            + "but the client disconnects. You can later reconnect to it.");
+    tool.put("description", "Disconnect while leaving the probe running.");
 
     Map<String, Object> properties = new LinkedHashMap<>();
 
     Map<String, Object> pidProp = new LinkedHashMap<>();
     pidProp.put("type", "string");
-    pidProp.put("description", "PID of the target JVM");
+    pidProp.put("description", "Target JVM PID.");
     properties.put("pid", pidProp);
 
     Map<String, Object> portProp = new LinkedHashMap<>();
     portProp.put("type", "integer");
-    portProp.put("description", "BTrace agent port (default: 2020)");
+    portProp.put("description", "Agent port (2020).");
     properties.put("port", portProp);
 
     List<String> required = new ArrayList<>();

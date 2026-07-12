@@ -36,21 +36,18 @@ public final class ExitProbeHandler {
   public static Map<String, Object> schema() {
     Map<String, Object> tool = new LinkedHashMap<>();
     tool.put("name", "exit_probe");
-    tool.put(
-        "description",
-        "Stop and remove a BTrace probe from the target JVM. "
-            + "This terminates the probe and removes all instrumentation.");
+    tool.put("description", "Stop and remove an active probe.");
 
     Map<String, Object> properties = new LinkedHashMap<>();
 
     Map<String, Object> pidProp = new LinkedHashMap<>();
     pidProp.put("type", "string");
-    pidProp.put("description", "PID of the target JVM");
+    pidProp.put("description", "Target JVM PID.");
     properties.put("pid", pidProp);
 
     Map<String, Object> portProp = new LinkedHashMap<>();
     portProp.put("type", "integer");
-    portProp.put("description", "BTrace agent port (default: 2020)");
+    portProp.put("description", "Agent port (2020).");
     properties.put("port", portProp);
 
     List<String> required = new ArrayList<>();

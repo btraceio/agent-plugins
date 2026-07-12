@@ -42,32 +42,23 @@ public final class DeployOnelinerHandler {
   public static Map<String, Object> schema() {
     Map<String, Object> tool = new LinkedHashMap<>();
     tool.put("name", "deploy_oneliner");
-    tool.put(
-        "description",
-        "Deploy a BTrace oneliner probe to a running JVM. "
-            + "Oneliners are concise probe expressions like: "
-            + "\"com.example.Service::method @return { print duration }\" "
-            + "or \"com.example.Dao::query @return if duration>100ms { print method, duration }\". "
-            + "The probe attaches to the target JVM and captures output for the specified duration.");
+    tool.put("description", "Deploy an oneliner probe.");
 
     Map<String, Object> properties = new LinkedHashMap<>();
 
     Map<String, Object> pidProp = new LinkedHashMap<>();
     pidProp.put("type", "string");
-    pidProp.put("description", "PID of the target JVM (use list_jvms to find it)");
+    pidProp.put("description", "Target JVM PID.");
     properties.put("pid", pidProp);
 
     Map<String, Object> onelinerProp = new LinkedHashMap<>();
     onelinerProp.put("type", "string");
-    onelinerProp.put(
-        "description",
-        "BTrace oneliner expression, e.g. "
-            + "\"com.example.Service::method @return { print method, duration }\"");
+    onelinerProp.put("description", "Probe expression.");
     properties.put("oneliner", onelinerProp);
 
     Map<String, Object> portProp = new LinkedHashMap<>();
     portProp.put("type", "integer");
-    portProp.put("description", "BTrace agent port (default: 2020)");
+    portProp.put("description", "Agent port (2020).");
     properties.put("port", portProp);
 
     List<String> required = new ArrayList<>();
