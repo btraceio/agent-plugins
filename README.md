@@ -49,7 +49,28 @@ Add this repository as a marketplace, then install `btrace-observability` from t
 Keep portable workflow instructions and scripts in `plugins/<name>/skills/`. Add only the
 minimum platform-specific metadata or integration configuration required by each host.
 
-Operational guidance in skills is deliberately self-contained. Keep it in sync with the BTrace
-source checkout rather than linking out to source documentation. Before the first push in a clone,
-run `scripts/install-git-hooks.sh`; it installs the tracked pre-push hook. Set
-`BTRACE_SOURCE_DIR` to a BTrace checkout when it is not available as `../btrace`.
+### Validation setup (required before pushing)
+
+Operational guidance in skills is deliberately self-contained: copy the relevant BTrace knowledge
+into the skill instead of linking to BTrace source documentation. The validation gate keeps that
+copy in sync with the BTrace source checkout.
+
+From a fresh clone, install the tracked pre-push hook once:
+
+```sh
+scripts/install-git-hooks.sh
+```
+
+The gate expects a BTrace checkout at `../btrace`. Otherwise, set its location before validating or
+pushing:
+
+```sh
+export BTRACE_SOURCE_DIR=/path/to/btrace
+scripts/validate-marketplace.sh
+git push
+```
+
+The hook runs this validation automatically before every push. It validates the Claude marketplace,
+JSON manifests, skill front matter, the absence of source-documentation URLs in skills, and selected
+facts against the BTrace checkout. Update `references/btrace-source-facts.txt` together with any
+intentional change to embedded BTrace operational guidance.
