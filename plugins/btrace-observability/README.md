@@ -57,3 +57,9 @@ durations, and exception types rather than request bodies, tokens, credentials, 
 
 Every deployment plan includes a target identity, output destination, observation window, and stop
 condition. The BTrace verifier remains enabled by default; unsafe/trusted mode is never assumed.
+
+## MCP server
+
+Claude Code installs the bundled stdio MCP server as `btrace`. It requires JBang and JDK 11 or
+newer, and it downloads the single masked `io.btrace:btrace` distribution on first use. The server
+must run on the host that can attach to the target JVM.

@@ -46,5 +46,13 @@
     "mustMention": ["distroless", "-javaagent", "startup", "sidecar"],
     "mustAvoid": ["kubectl exec", "inject a shell"],
     "rubric": "Choose launch-time packaging or an intentionally designed sidecar, not incident-time shell injection."
+  },
+  {
+    "id": "mcp-local-probe",
+    "prompt": "Use the BTrace MCP server to diagnose a slow method in my local JVM. I need a short-lived probe and a clean stop.",
+    "requiredSkills": ["btrace-observability", "btrace-mcp-operations", "btrace-latency-analysis", "btrace-probe-lifecycle"],
+    "mustMention": ["local", "list_jvms", "pid", "duration", "exit_probe"],
+    "mustAvoid": ["grantAll=true"],
+    "rubric": "Use the local MCP workflow: identify the PID, deploy a bounded latency probe, and explicitly remove it with exit_probe."
   }
 ]
