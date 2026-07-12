@@ -72,5 +72,6 @@ git push
 
 The hook runs this validation automatically before every push. It validates the Claude marketplace,
 JSON manifests, skill front matter, the absence of source-documentation URLs in skills, and selected
-facts against the BTrace checkout. Update `references/btrace-source-facts.txt` together with any
-intentional change to embedded BTrace operational guidance.
+facts against the BTrace checkout. It also validates the provider-neutral observability eval corpus.
+Update `references/btrace-source-facts.txt` together with any intentional change to embedded BTrace
+operational guidance. See [the eval guide](evals/README.md) to score captured model responses.
