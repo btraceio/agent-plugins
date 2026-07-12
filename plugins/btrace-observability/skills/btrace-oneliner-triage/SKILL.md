@@ -31,5 +31,6 @@ btrace -n 'com.example.orders.OrderRepository::find* @entry { count }' <PID>
 and regex can be valuable for discovery, but add a duration/argument filter or short observation
 window before using them on a busy service. Treat `args`, `return`, and `stack` as sensitive output.
 
-For syntax and supported actions, follow the BTrace Oneliner Guide:
-https://github.com/btraceio/btrace/blob/master/docs/OnelinerGuide.md
+Supported locations are `@entry`, `@return`, and `@error`. Common actions are `print`, `count`,
+`time`, and `stack`. Use a full Java probe once the investigation needs a timer, aggregation,
+multiple locations, or maintained/reviewable diagnostic code.

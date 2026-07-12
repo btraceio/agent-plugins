@@ -17,5 +17,5 @@ are on the same host and the operator wants an auditable conversational workflow
 - Use the server's `diagnose_slow_endpoint`, `find_exception_source`, and `profile_method` prompts
   as starting workflows, then apply the other plugin skills for scope and data safety.
 
-Configuration and security guidance:
-https://github.com/btraceio/btrace/blob/master/docs/MCPServer.md
+The server uses stdio rather than opening a network listener. Keep it local to the target host and
+use SSH, `kubectl exec`, or an approved bastion workflow to run it beside a remote target.

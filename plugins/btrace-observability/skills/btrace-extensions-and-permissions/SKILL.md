@@ -15,11 +15,8 @@ library bridge.
   feature is unavailable.
 - For long-lived distributed deployments, consider a fat agent with the required extensions bundled
   at build time. Treat that as a reviewed deployment artifact, not an incident-time shortcut.
-- Provided-style Spark/Hadoop examples demonstrate object hand-off and context-classloader patterns;
-  avoid appending arbitrary libraries to the system classpath.
-
-Relevant references:
-
-- https://github.com/btraceio/btrace/blob/master/docs/tutorials/04-extensions-and-permissions.md
-- https://github.com/btraceio/btrace/blob/master/docs/examples/README.md
-- https://github.com/btraceio/btrace/blob/master/docs/BTraceExtensionDevelopmentGuide.md
+- Provided-style Spark/Hadoop extensions use object hand-off and context-classloader patterns to
+  link to application libraries without mutating the JVM class path. Prefer that design; the
+  `btrace.system.appendJar` escape hatch is trusted-only and should be avoided for normal use.
+- An extension that needs network, reflection, filesystem, threads, or system properties should
+  declare that need explicitly and be reviewed as a deployed component.

@@ -1,0 +1,6 @@
+# file relative to BTRACE_SOURCE_DIR|text that must remain in BTrace source documentation
+docs/OnelinerGuide.md|class-pattern::method-pattern @location
+docs/GettingStarted.md|JDK (not JRE) must be installed in container
+docs/GettingStarted.md|shareProcessNamespace: true
+docs/MCPServer.md|Local attachment only.
+docs/Troubleshooting.md|Target JVM started with `-XX:+DisableAttachMechanism`

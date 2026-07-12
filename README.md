@@ -48,3 +48,8 @@ Add this repository as a marketplace, then install `btrace-observability` from t
 
 Keep portable workflow instructions and scripts in `plugins/<name>/skills/`. Add only the
 minimum platform-specific metadata or integration configuration required by each host.
+
+Operational guidance in skills is deliberately self-contained. Keep it in sync with the BTrace
+source checkout rather than linking out to source documentation. Before the first push in a clone,
+run `scripts/install-git-hooks.sh`; it installs the tracked pre-push hook. Set
+`BTRACE_SOURCE_DIR` to a BTrace checkout when it is not available as `../btrace`.

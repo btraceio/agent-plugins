@@ -20,7 +20,6 @@ Use the Kubernetes sidecar pattern for persistent diagnostic availability only w
 sharing and platform security policy permit it. For distroless workloads, prefer the startup agent or
 an intentionally designed sidecar rather than attempting to inject a shell at incident time.
 
-References:
-
-- https://github.com/btraceio/btrace/blob/master/docs/tutorials/08-fat-agent.md
-- https://github.com/btraceio/btrace/blob/master/docs/tutorials/09-kubernetes-sidecar.md
+For a sidecar, mount probes through a controlled volume/configuration source, use a fixed image
+version, and send diagnostics to the platform logging pipeline. For a fat agent, verify the embedded
+extensions and their permissions before deployment; embedding is part of the runtime trust boundary.
