@@ -10,7 +10,7 @@ one another so the workflow instructions and supporting scripts are maintained o
 | Plugin | Purpose |
 | --- | --- |
 | `btrace-development` | Repository conventions and build guidance for BTrace development. |
-| `btrace-observability` | Goal-first help for diagnosing Java applications with BTrace probes. |
+| `btrace-observability` | A composable SRE skill suite for diagnosing Java applications with BTrace probes. |
 
 ## Layout
 
