@@ -20,3 +20,6 @@ node scripts/score-evals.js eval-responses.jsonl
 The scorer is intentionally lexical and advisory: it catches missing operational guardrails and
 obvious unsafe suggestions (while allowing a response to explicitly warn against a dangerous
 pattern), but human review remains necessary for probe correctness.
+
+The corpus includes MCP workflow coverage, but it does not start an MCP server or attach to a JVM.
+Protocol and schema behavior are covered by the MCP module's unit tests instead.

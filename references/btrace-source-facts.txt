@@ -2,5 +2,5 @@
 docs/OnelinerGuide.md|class-pattern::method-pattern @location
 docs/GettingStarted.md|JDK (not JRE) must be installed in container
 docs/GettingStarted.md|shareProcessNamespace: true
-docs/MCPServer.md|Local attachment only.
+docs/MCPServer.md|must run on the host that can attach to the target JVM
 docs/Troubleshooting.md|Target JVM started with `-XX:+DisableAttachMechanism`
