@@ -33,7 +33,13 @@ while IFS= read -r skill; do
   grep -q '^description: ' "$skill" || { echo "error: missing skill description: $skill" >&2; exit 1; }
 done < <(find plugins -path '*/skills/*/SKILL.md' -type f | sort)
 
-if rg -n 'https?://github\.com/btraceio/btrace/blob/' plugins; then
+if command -v rg >/dev/null 2>&1; then
+  source_links=$(rg -n 'https?://github\.com/btraceio/btrace/blob/' plugins || true)
+else
+  source_links=$(grep -REn 'https?://github\.com/btraceio/btrace/blob/' plugins || true)
+fi
+if [[ -n "$source_links" ]]; then
+  echo "$source_links" >&2
   echo "error: copy operational guidance into skills; do not link to BTrace source docs" >&2
   exit 1
 fi
