@@ -23,6 +23,7 @@ and combine the specialist skills below as needed.
 | Extensions, metrics exporters, or permission grants | `btrace-extensions-and-permissions` |
 | AI/MCP-guided local diagnostics | `btrace-mcp-operations` |
 | Immutable images, no attach, or launch-time deployment | `btrace-startup-and-packaging` |
+| Legacy `libs`/profile packaging that must become an extension | `btrace-legacy-libs-migration` |
 
 For a typical production incident, combine runtime access + the relevant diagnosis skill + lifecycle
 + data safety. Do not force every request through every skill.
