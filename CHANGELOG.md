@@ -6,3 +6,4 @@
 - Goal-first BTrace observability skill suite with cloud/SRE workflows.
 - Provider-neutral eval corpus and repository validation gate.
 - `btrace-legacy-libs-migration` skill for moving retired `libs`/profile packaging into an extension.
+- Moved `btrace-extensions-and-permissions` into `btrace-development`; extension authoring is build-time work, not incident diagnosis.

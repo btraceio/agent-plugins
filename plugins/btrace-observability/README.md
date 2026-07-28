@@ -35,7 +35,6 @@ All of these are bundled in this one plugin and may be combined for an incident:
 | `btrace-runtime-access` | SSH, Docker, Kubernetes, sidecars, and cloud runtime boundaries. |
 | `btrace-probe-lifecycle` | Attach, output capture, verification, reconnect, and removal. |
 | `btrace-data-safety` | Sensitive output, production load, permissions, and scope escalation. |
-| `btrace-extensions-and-permissions` | Metrics exporters, extensions, and minimal permission grants. |
 | `btrace-mcp-operations` | Local BTrace MCP server workflows. |
 | `btrace-startup-and-packaging` | Launch-time agents, fat agents, immutable images, and distroless workloads. |
 | `btrace-legacy-libs-migration` | Retired `libs`/profile packaging, and moving it into an extension. |
