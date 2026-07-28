@@ -7,3 +7,4 @@
 - Provider-neutral eval corpus and repository validation gate.
 - `btrace-legacy-libs-migration` skill for moving retired `libs`/profile packaging into an extension.
 - Moved `btrace-extensions-and-permissions` into `btrace-development`; extension authoring is build-time work, not incident diagnosis.
+- `btrace-extension-authoring` skill for designing a new extension against a target library.
