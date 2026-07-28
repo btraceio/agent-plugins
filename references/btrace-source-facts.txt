@@ -3,3 +3,5 @@ docs/OnelinerGuide.md|class-pattern::method-pattern @location
 docs/GettingStarted.md|JDK (not JRE) must be installed in container
 docs/GettingStarted.md|shareProcessNamespace: true
 docs/Troubleshooting.md|Target JVM started with `-XX:+DisableAttachMechanism`
+docs/architecture/agent-manifest-libs.md|BTrace-Boot-Libs
+docs/architecture/agent-manifest-libs.md|BTrace-System-Libs

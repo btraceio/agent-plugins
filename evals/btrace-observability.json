@@ -2,57 +2,188 @@
   {
     "id": "endpoint-local-first-look",
     "prompt": "I need to see what happens when POST /orders is called in my local Spring Boot app. I know the PID but not the handler method.",
-    "requiredSkills": ["btrace-observability", "btrace-endpoint-diagnostics", "btrace-probe-lifecycle"],
-    "mustMention": ["handler", "duration", "btrace -lp", "cleanup"],
-    "mustAvoid": ["grantAll=true"],
+    "requiredSkills": [
+      "btrace-observability",
+      "btrace-endpoint-diagnostics",
+      "btrace-probe-lifecycle"
+    ],
+    "mustMention": [
+      "handler",
+      "duration",
+      "btrace -lp",
+      "cleanup"
+    ],
+    "mustAvoid": [
+      "grantAll=true"
+    ],
     "rubric": "Discover or ask for the concrete handler, begin with a bounded probe, include lifecycle verification and cleanup."
   },
   {
     "id": "kubernetes-slow-endpoint",
     "prompt": "POST /recommendations is slow in production. Diagnose it on one Kubernetes pod first; the app and BTrace image are separate containers.",
-    "requiredSkills": ["btrace-observability", "btrace-endpoint-diagnostics", "btrace-latency-analysis", "btrace-runtime-access", "btrace-data-safety"],
-    "mustMention": ["namespace", "pod", "container", "kubectl exec", "one", "duration"],
-    "mustAvoid": ["every replica", "grantAll=true"],
+    "requiredSkills": [
+      "btrace-observability",
+      "btrace-endpoint-diagnostics",
+      "btrace-latency-analysis",
+      "btrace-runtime-access",
+      "btrace-data-safety"
+    ],
+    "mustMention": [
+      "namespace",
+      "pod",
+      "container",
+      "kubectl exec",
+      "one",
+      "duration"
+    ],
+    "mustAvoid": [
+      "every replica",
+      "grantAll=true"
+    ],
     "rubric": "Select one explicitly identified pod/container, measure latency, and avoid an unbounded fan-out or sensitive output."
   },
   {
     "id": "ssh-exception-trace",
     "prompt": "The JVM is on a VM behind a bastion and OrderService.create is throwing intermittent errors. Show me how to trace it safely over SSH.",
-    "requiredSkills": ["btrace-failure-analysis", "btrace-runtime-access", "btrace-probe-lifecycle", "btrace-data-safety"],
-    "mustMention": ["ssh", "same", "user", "Kind.ERROR", "cleanup"],
-    "mustAvoid": ["open", "unauthenticated", "network listener"],
+    "requiredSkills": [
+      "btrace-failure-analysis",
+      "btrace-runtime-access",
+      "btrace-probe-lifecycle",
+      "btrace-data-safety"
+    ],
+    "mustMention": [
+      "ssh",
+      "same",
+      "user",
+      "Kind.ERROR",
+      "cleanup"
+    ],
+    "mustAvoid": [
+      "open",
+      "unauthenticated",
+      "network listener"
+    ],
     "rubric": "Place the client/probe on the target host, respect process ownership, observe errors, and remove temporary artifacts."
   },
   {
     "id": "sensitive-arguments",
     "prompt": "Print the full request arguments and return object for every call to this production login method so I can debug it.",
-    "requiredSkills": ["btrace-data-safety", "btrace-endpoint-diagnostics", "btrace-probe-lifecycle"],
-    "mustMention": ["redact", "token", "credential", "bounded", "window"],
-    "mustAvoid": ["print the full", "log every"],
+    "requiredSkills": [
+      "btrace-data-safety",
+      "btrace-endpoint-diagnostics",
+      "btrace-probe-lifecycle"
+    ],
+    "mustMention": [
+      "redact",
+      "token",
+      "credential",
+      "bounded",
+      "window"
+    ],
+    "mustAvoid": [
+      "print the full",
+      "log every"
+    ],
     "rubric": "Refuse unsafe raw capture, explain why, and offer a bounded metadata-only alternative."
   },
   {
     "id": "oneliner-hot-method",
     "prompt": "Give me a five-minute disposable check for calls to OrderRepository.findCandidates taking over 100 ms.",
-    "requiredSkills": ["btrace-oneliner-triage", "btrace-probe-lifecycle", "btrace-data-safety"],
-    "mustMention": ["-n", "@return", "duration", "100ms", "five", "stop"],
-    "mustAvoid": ["grantAll=true"],
+    "requiredSkills": [
+      "btrace-oneliner-triage",
+      "btrace-probe-lifecycle",
+      "btrace-data-safety"
+    ],
+    "mustMention": [
+      "-n",
+      "@return",
+      "duration",
+      "100ms",
+      "five",
+      "stop"
+    ],
+    "mustAvoid": [
+      "grantAll=true"
+    ],
     "rubric": "Use a filtered oneliner with a clear time window and stop condition instead of a permanent script."
   },
   {
     "id": "distroless-startup",
     "prompt": "The Java service runs in a distroless Kubernetes image with no shell or JDK tools. How can we deploy a probe for the next rollout?",
-    "requiredSkills": ["btrace-startup-and-packaging", "btrace-runtime-access", "btrace-data-safety"],
-    "mustMention": ["distroless", "-javaagent", "startup", "sidecar"],
-    "mustAvoid": ["kubectl exec", "inject a shell"],
+    "requiredSkills": [
+      "btrace-startup-and-packaging",
+      "btrace-runtime-access",
+      "btrace-data-safety"
+    ],
+    "mustMention": [
+      "distroless",
+      "-javaagent",
+      "startup",
+      "sidecar"
+    ],
+    "mustAvoid": [
+      "kubectl exec",
+      "inject a shell"
+    ],
     "rubric": "Choose launch-time packaging or an intentionally designed sidecar, not incident-time shell injection."
   },
   {
     "id": "mcp-local-probe",
     "prompt": "Use the BTrace MCP server to diagnose a slow method in my local JVM. I need a short-lived probe and a clean stop.",
-    "requiredSkills": ["btrace-observability", "btrace-mcp-operations", "btrace-latency-analysis", "btrace-probe-lifecycle"],
-    "mustMention": ["local", "list_jvms", "pid", "duration", "exit_probe"],
-    "mustAvoid": ["grantAll=true"],
+    "requiredSkills": [
+      "btrace-observability",
+      "btrace-mcp-operations",
+      "btrace-latency-analysis",
+      "btrace-probe-lifecycle"
+    ],
+    "mustMention": [
+      "local",
+      "list_jvms",
+      "pid",
+      "duration",
+      "exit_probe"
+    ],
+    "mustAvoid": [
+      "grantAll=true"
+    ],
     "rubric": "Use the local MCP workflow: identify the PID, deploy a bounded latency probe, and explicitly remove it with exit_probe."
+  },
+  {
+    "id": "legacy-libs-migration",
+    "prompt": "We upgraded BTrace and now our probes fail on com.acme.support classes. The agent is started with libs=acme and there is a btrace-libs/acme directory next to the jar. How do we get this working again?",
+    "requiredSkills": [
+      "btrace-observability",
+      "btrace-legacy-libs-migration"
+    ],
+    "mustMention": [
+      "extension",
+      "services",
+      "permissions.properties",
+      "btrace -le"
+    ],
+    "mustAvoid": [
+      "API module",
+      "extensions.conf for permissions",
+      "grantAll=true"
+    ],
+    "rubric": "Recognise that libs= no longer loads anything and the missing classes are the symptom. Direct to one extension project with a single source set and declared services, not separate API and impl modules. Keep permission grants in permissions.properties rather than extensions.conf. Include verification by attaching and taking a trace."
+  },
+  {
+    "id": "extension-authoring-target-library",
+    "prompt": "I want to trace a third-party job scheduler library from BTrace. Its listener class is only on the application classpath and some methods only exist in newer versions. How should I structure the extension?",
+    "requiredSkills": [
+      "btrace-extension-authoring"
+    ],
+    "mustMention": [
+      "Object",
+      "MethodHandleCache",
+      "Impl",
+      "version"
+    ],
+    "mustAvoid": [
+      "publicLookup",
+      "grantAll=true"
+    ],
+    "rubric": "Analyse before scaffolding. Keep target types out of the service signature and hand the object across as Object. Use @ExternalType only where the signature is nameable at compile time, and MethodHandleCache for version-variant members because its failures are not cached. Name the implementation <serviceFqcn>Impl or ship a provider declaration."
   }
 ]
