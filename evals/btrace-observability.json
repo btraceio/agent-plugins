@@ -167,5 +167,23 @@
       "grantAll=true"
     ],
     "rubric": "Recognise that libs= no longer loads anything and the missing classes are the symptom. Direct to one extension project with a single source set and declared services, not separate API and impl modules. Keep permission grants in permissions.properties rather than extensions.conf. Include verification by attaching and taking a trace."
+  },
+  {
+    "id": "extension-authoring-target-library",
+    "prompt": "I want to trace a third-party job scheduler library from BTrace. Its listener class is only on the application classpath and some methods only exist in newer versions. How should I structure the extension?",
+    "requiredSkills": [
+      "btrace-extension-authoring"
+    ],
+    "mustMention": [
+      "Object",
+      "MethodHandleCache",
+      "Impl",
+      "version"
+    ],
+    "mustAvoid": [
+      "publicLookup",
+      "grantAll=true"
+    ],
+    "rubric": "Analyse before scaffolding. Keep target types out of the service signature and hand the object across as Object. Use @ExternalType only where the signature is nameable at compile time, and MethodHandleCache for version-variant members because its failures are not cached. Name the implementation <serviceFqcn>Impl or ship a provider declaration."
   }
 ]
