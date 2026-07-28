@@ -49,5 +49,5 @@ it into a no-op returning defaults and makes an unfinished migration look comple
 fails, `btrace -le <PID>` reports why.
 
 For deployments that cannot manage separate extension artifacts, load `btrace-startup-and-packaging`
-for fat agents. For choosing permissions and deciding whether an extension is warranted at all,
-load `btrace-extensions-and-permissions`.
+for fat agents. Deciding whether an extension is warranted at all, and choosing its permissions, is
+covered by the extension authoring guidance in the `btrace-development` plugin.
