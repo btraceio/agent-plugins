@@ -9,6 +9,8 @@ import io.btrace.client.Client;
 import io.btrace.core.comm.Command;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 
@@ -29,7 +31,19 @@ class BTraceClientTest {
     assertEquals("42", delegate.attachedPid);
 
     AtomicReference<Object> submitted = new AtomicReference<>();
-    client.submit("localhost", "Trace.java", new byte[] {1}, new String[] {"arg"}, submitted::set);
+    CountDownLatch status = new CountDownLatch(1);
+    Thread probe =
+        client.submitInBackground(
+            "localhost",
+            "Trace.java",
+            new byte[] {1},
+            new String[] {"arg"},
+            command -> {
+              submitted.set(command);
+              status.countDown();
+            });
+    assertTrue(status.await(5, TimeUnit.SECONDS));
+    assertTrue(probe.isDaemon());
     assertEquals("localhost:Trace.java", client.printableText(submitted.get()));
     assertEquals(Command.STATUS, client.commandType(submitted.get()));
     assertEquals(Command.STATUS, client.commandConstant("STATUS"));
@@ -47,6 +61,8 @@ class BTraceClientTest {
     client.sendDisconnect();
     client.sendExit(7);
     client.close();
+    probe.join(5000);
+    assertFalse(probe.isAlive());
     assertTrue(delegate.disconnected);
     assertEquals(7, delegate.exitCode);
     assertTrue(delegate.closed);

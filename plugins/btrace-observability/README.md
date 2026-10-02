@@ -60,6 +60,14 @@ condition. The BTrace verifier remains enabled by default; unsafe/trusted mode i
 
 ## MCP server
 
-Claude Code installs the bundled stdio MCP server as `btrace`. It requires JBang and JDK 11 or
-newer, and it downloads the single masked `io.btrace:btrace` distribution on first use. The server
-must run on the host that can attach to the target JVM.
+The host plugin integration installs the bundled stdio MCP server as `btrace`. It requires JBang
+and JDK 11 or newer, and it downloads the single masked `io.btrace:btrace` distribution on first
+use. The server must run on the host that can attach to the target JVM.
+
+## JFR correlation
+
+When the `jfr-analyzer` plugin is installed, use it for historical profile context and pair it with
+the `jfr-btrace-interop` skill. JFR identifies the resource, interval, and candidate hotspot;
+BTrace performs the narrow live confirmation. Share target identity, timestamps, hypothesis, and
+evidence between the two workflows, and always stop the BTrace probe when the observation window
+ends.

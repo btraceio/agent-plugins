@@ -16,6 +16,18 @@
       "description": "Goal-first incident diagnosis with safe, focused BTrace probes.",
       "version": "0.1.0",
       "source": "./plugins/btrace-observability"
+    },
+    {
+      "name": "jfr-analyzer",
+      "description": "Systematic JVM profile investigation with optional BTrace correlation.",
+      "version": "0.1.0",
+      "source": "./plugins/jfr-analyzer"
+    },
+    {
+      "name": "perf-engineer",
+      "description": "Evidence-driven Java optimization investigations with JFR, BTrace, and JMH.",
+      "version": "0.1.0",
+      "source": "./plugins/perf-engineer"
     }
   ]
 }

@@ -21,11 +21,19 @@ and combine the specialist skills below as needed.
 | Deploying, verifying, reconnecting, or stopping a probe | `btrace-probe-lifecycle` |
 | Sensitive data, production load, permissions, or risk | `btrace-data-safety` |
 | AI/MCP-guided local diagnostics | `btrace-mcp-operations` |
+| Historical profile context or JFR/async-profiler correlation | `jfr-analyzer`, `async-profiler-interop`, and `jfr-btrace-interop` when installed |
 | Immutable images, no attach, or launch-time deployment | `btrace-startup-and-packaging` |
 | Legacy `libs`/profile packaging that must become an extension | `btrace-legacy-libs-migration` |
 
 For a typical production incident, combine runtime access + the relevant diagnosis skill + lifecycle
 + data safety. Do not force every request through every skill.
+
+When a JFR or other profile is available, use it to establish the historical resource, time window,
+and candidate hotspot before widening a live probe. If `jfr-analyzer` is installed, pair it with
+`jfr-btrace-interop`: JFR supplies aggregate context and BTrace confirms a narrow live behavior.
+If async-profiler is available, use it for a bounded sampled CPU, wall-clock, allocation, lock, or
+native profile when that is the unresolved question. Carry target identity, timestamps, hypothesis,
+and evidence between all analyses.
 
 The skill suite is grounded in the BTrace hands-on tutorials, Quick Reference, Oneliner Guide, and
 provided extension examples. Prefer their verified syntax and deployment patterns over invented DSL

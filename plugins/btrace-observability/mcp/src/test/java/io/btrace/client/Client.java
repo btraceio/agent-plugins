@@ -4,6 +4,7 @@ import io.btrace.core.comm.Command;
 import io.btrace.core.comm.CommandListener;
 import io.btrace.core.comm.FakePrintableCommand;
 import java.io.PrintWriter;
+import java.util.concurrent.CountDownLatch;
 
 public class Client {
   public static Client last;
@@ -13,6 +14,8 @@ public class Client {
   public String event;
   public boolean disconnected;
   public boolean closed;
+  public String submittedFileName;
+  private final CountDownLatch closeLatch = new CountDownLatch(1);
 
   public Client(int port) {
     this.port = port;
@@ -29,7 +32,10 @@ public class Client {
 
   public void submit(
       String host, String fileName, byte[] code, String[] args, CommandListener listener) throws Exception {
+    submittedFileName = fileName;
     listener.onCommand(new FakePrintableCommand(Command.STATUS, host + ':' + fileName));
+    // Like the real client, keep running the probe command loop until the client is closed.
+    closeLatch.await();
   }
 
   public void connectAndListProbes(String host, CommandListener listener) throws Exception {
@@ -54,5 +60,6 @@ public class Client {
 
   public void close() {
     closed = true;
+    closeLatch.countDown();
   }
 }

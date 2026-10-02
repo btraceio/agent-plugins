@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +37,9 @@ public final class DeployScriptHandler {
   private static final Logger log = LoggerFactory.getLogger(DeployScriptHandler.class);
   private static final int DEFAULT_PORT = 2020;
   private static final int PROBE_TIMEOUT_SECONDS = 30;
+  private static final Pattern COMMENTS = Pattern.compile("//[^\\n]*|/\\*.*?\\*/", Pattern.DOTALL);
+  private static final Pattern CLASS_NAME =
+      Pattern.compile("\\bclass\\s+([A-Za-z_$][A-Za-z0-9_$]*)");
 
   private DeployScriptHandler() {}
 
@@ -107,7 +112,7 @@ public final class DeployScriptHandler {
     }
 
     try {
-      String fileName = "BTraceScript_" + System.currentTimeMillis() + ".java";
+      String fileName = scriptFileName(script);
 
       // Compile the script
       BTraceClient client = ClientManager.getClient(port);
@@ -129,12 +134,16 @@ public final class DeployScriptHandler {
       AtomicBoolean exited = new AtomicBoolean(false);
       final String[] finalArgs = btraceArgs;
 
-      client.submit(
+      client.submitInBackground(
           "localhost",
           fileName,
           code,
           finalArgs,
           cmd -> {
+            if (statusLatch.getCount() == 0) {
+              // Later probe output is not reported; do not buffer it for the probe's lifetime.
+              return;
+            }
             output.append(client.printableText(cmd));
             int type = client.commandType(cmd);
             if (type == client.commandConstant("STATUS")) {
@@ -150,10 +159,12 @@ public final class DeployScriptHandler {
       boolean started = statusLatch.await(PROBE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
       if (!started) {
+        closeQuietly(client);
         return toolResult("Probe deployment timed out after " + PROBE_TIMEOUT_SECONDS + "s", true);
       }
 
       if (exited.get() && !success.get()) {
+        closeQuietly(client);
         return toolResult("Probe exited with error:\n" + output.toString(), true);
       }
 
@@ -169,6 +180,25 @@ public final class DeployScriptHandler {
     } catch (Exception e) {
       log.error("Failed to deploy script", e);
       return toolResult("Error deploying script: " + e.getMessage(), true);
+    }
+  }
+
+  /**
+   * Names the source file after the script's first declared class, as javac requires for public
+   * classes; a non-public class compiles as BTrace short syntax, which rejects fields and statics.
+   */
+  private static String scriptFileName(String script) {
+    String code = COMMENTS.matcher(script).replaceAll(" ");
+    Matcher matcher = CLASS_NAME.matcher(code);
+    String name = matcher.find() ? matcher.group(1) : "BTraceScript_" + System.currentTimeMillis();
+    return name + ".java";
+  }
+
+  private static void closeQuietly(BTraceClient client) {
+    try {
+      client.close();
+    } catch (Exception e) {
+      log.debug("Failed to close BTrace client", e);
     }
   }
 

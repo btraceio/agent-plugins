@@ -1,0 +1,36 @@
+{
+  "name": "perf-engineer",
+  "version": "0.1.0",
+  "description": "Evidence-driven optimization investigations for running Java applications.",
+  "author": {
+    "name": "BTrace",
+    "url": "https://github.com/btraceio"
+  },
+  "repository": "https://github.com/btraceio/agent-plugins",
+  "license": "Apache-2.0",
+  "keywords": [
+    "java",
+    "performance",
+    "jmh",
+    "jfr",
+    "btrace",
+    "async-profiler"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Perf Engineer",
+    "shortDescription": "Optimize Java applications from evidence.",
+    "longDescription": "Coordinate bounded profiling, JFR analysis, BTrace workload characterization, JMH benchmarking, idea search, and explicitly approved candidate patches.",
+    "developerName": "BTrace",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Guidance",
+      "Analysis"
+    ],
+    "defaultPrompt": [
+      "Optimize this Java application from PID 12345.",
+      "Profile this JVM and find an evidence-backed optimization.",
+      "Build a representative benchmark for the hottest method."
+    ]
+  }
+}
