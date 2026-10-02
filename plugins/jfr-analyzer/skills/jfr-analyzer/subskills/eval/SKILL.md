@@ -137,12 +137,9 @@ After all runs complete, output:
 
 Parse `--scenario` and `--multi-judge` flags from $ARGUMENTS.
 
-Check if `<EVAL_DIR>/scripts/.venv` exists:
-- If not: run `cd <EVAL_DIR>/scripts && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`
-
-Run:
+Run (JBang resolves the Jackson dependency on first use):
 ```bash
-cd <EVAL_DIR>/scripts && .venv/bin/python score.py [--scenario <id> if set] [--multi-judge if set]
+cd <EVAL_DIR>/scripts && jbang Score.java [--scenario <id> if set] [--multi-judge if set]
 ```
 
 Display the generated report content.

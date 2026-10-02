@@ -54,9 +54,8 @@ plugins/jfr-analyzer/eval/scripts/regen.sh
 The script prompts before installing JBang, async-profiler, or `jq`, then records the corpus and
 updates its manifest. After the MCP server is available, run `/jfr-analyzer eval regen` to extract
 event types and optionally validate oracle results. Run `/jfr-analyzer eval run` for triage passes,
-then `/jfr-analyzer eval score` to generate the report. Scoring creates a local Python environment
-under `plugins/jfr-analyzer/eval/scripts/.venv` when needed and may require the judge API key named
-in `scripts/score.py`.
+then `/jfr-analyzer eval score` to generate the report. Scoring runs `eval/scripts/Score.java` through JBang and may require the judge API
+key named in that file.
 
 ## Transport strategy
 

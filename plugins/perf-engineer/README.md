@@ -17,11 +17,11 @@ The first supervisor implementation manages one async-profiler recording. It val
 enforces a maximum duration, persists state, and supports stop/status/cleanup:
 
 ```sh
-python3 plugins/perf-engineer/scripts/perf-engineer-session.py start <pid> \
+jbang plugins/perf-engineer/scripts/PerfEngineerSession.java start <pid> \
   --event cpu --duration 30 --output /tmp/profile.jfr
-python3 plugins/perf-engineer/scripts/perf-engineer-session.py status <session-id>
-python3 plugins/perf-engineer/scripts/perf-engineer-session.py stop <session-id>
-python3 plugins/perf-engineer/scripts/perf-engineer-session.py cleanup <session-id>
+jbang plugins/perf-engineer/scripts/PerfEngineerSession.java status <session-id>
+jbang plugins/perf-engineer/scripts/PerfEngineerSession.java stop <session-id>
+jbang plugins/perf-engineer/scripts/PerfEngineerSession.java cleanup <session-id>
 ```
 
 Set `ASYNC_PROFILER_HOME` or pass `--profiler` when the async-profiler CLI is not on `PATH`. This
@@ -30,5 +30,5 @@ supervises one recording only; BTrace probes and later analysis remain separate 
 Run the supervisor regression tests with:
 
 ```sh
-python3 -m unittest discover -s plugins/perf-engineer/scripts -p 'test_*.py' -v
+jbang plugins/perf-engineer/scripts/PerfEngineerSessionTest.java
 ```
