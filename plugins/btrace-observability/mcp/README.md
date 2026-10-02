@@ -20,3 +20,14 @@ Run its unit tests with:
 ```
 
 `./gradlew check` enforces at least 80% line coverage for the MCP Java code.
+
+Run the end-to-end tests with:
+
+```sh
+./gradlew e2eTest
+```
+
+They launch the server through JBang, as the plugin manifests do, and exercise every tool and prompt
+against a sample JVM, observing probe effects through `@Export` counters read with `jcmd`. They need
+`jbang` on `PATH` and a resolvable `io.btrace:btrace` artifact, so they are not part of `check`. The
+`list_probes` case is disabled because the BTrace client exits the JVM after listing probes.

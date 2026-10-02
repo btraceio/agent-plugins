@@ -34,6 +34,33 @@ tasks.withType(Test).configureEach {
     jvmArgs '--add-modules', 'jdk.attach'
 }
 
+// End-to-end tests launch the real server through JBang against a live sample JVM. They need jbang
+// on PATH and a resolvable io.btrace:btrace artifact, so they are not part of `check`.
+sourceSets {
+    e2eTest
+}
+
+configurations {
+    e2eTestImplementation.extendsFrom testImplementation
+    e2eTestRuntimeOnly.extendsFrom testRuntimeOnly
+}
+
+dependencies {
+    e2eTestImplementation sourceSets.main.output
+}
+
+tasks.register('e2eTest', Test) {
+    description = 'Runs the MCP server end-to-end against a sample JVM.'
+    group = 'verification'
+    testClassesDirs = sourceSets.e2eTest.output.classesDirs
+    classpath = sourceSets.e2eTest.runtimeClasspath
+    shouldRunAfter tasks.named('test')
+    outputs.upToDateWhen { false }
+    systemProperty 'e2e.serverScript', file('src/main/java/io/btrace/mcp/BTraceMcpServer.java').absolutePath
+    systemProperty 'e2e.sampleClasspath', sourceSets.e2eTest.output.classesDirs.asPath
+    systemProperty 'e2e.logDir', layout.buildDirectory.dir('e2e').get().asFile.absolutePath
+}
+
 jacoco {
     toolVersion = '0.8.13'
 }
