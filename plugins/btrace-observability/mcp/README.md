@@ -27,7 +27,14 @@ Run the end-to-end tests with:
 ./gradlew e2eTest
 ```
 
-They launch the server through JBang, as the plugin manifests do, and exercise every tool and prompt
-against a sample JVM, observing probe effects through `@Export` counters read with `jcmd`. They need
-`jbang` on `PATH` and a resolvable `io.btrace:btrace` artifact, so they are not part of `check`. The
-`list_probes` case is disabled because the BTrace client exits the JVM after listing probes.
+They exercise every tool and prompt against a sample JVM, observing probe effects through `@Export`
+counters read with `jcmd`. No LLM is involved. By default they launch the server through JBang, as
+the plugin manifests do, which needs `jbang` on `PATH` and a resolvable `io.btrace:btrace` artifact,
+so they are not part of `check`. To test against a BTrace build instead, such as in CI, point them
+at its masked JAR:
+
+```sh
+BTRACE_JAR=/path/to/btrace/btrace-dist/build/resources/main/v<version>/libs/btrace.jar ./gradlew e2eTest
+```
+
+The `list_probes` case is disabled because the BTrace client exits the JVM after listing probes.

@@ -34,8 +34,14 @@ tasks.withType(Test).configureEach {
     jvmArgs '--add-modules', 'jdk.attach'
 }
 
-// End-to-end tests launch the real server through JBang against a live sample JVM. They need jbang
-// on PATH and a resolvable io.btrace:btrace artifact, so they are not part of `check`.
+// End-to-end tests run the real server against a live sample JVM, so they are not part of `check`.
+// By default the server is launched through JBang, as the plugin manifests do, which needs jbang on
+// PATH and a resolvable io.btrace:btrace artifact. Set BTRACE_JAR (or -PbtraceJar) to a masked
+// btrace.jar, e.g. from a CI build of BTrace, to run the compiled server against that JAR instead.
+def btraceJar = providers.gradleProperty('btraceJar')
+    .orElse(providers.environmentVariable('BTRACE_JAR'))
+    .map { it.trim() ? it.trim() : null }
+
 sourceSets {
     e2eTest
 }
@@ -59,6 +65,10 @@ tasks.register('e2eTest', Test) {
     systemProperty 'e2e.serverScript', file('src/main/java/io/btrace/mcp/BTraceMcpServer.java').absolutePath
     systemProperty 'e2e.sampleClasspath', sourceSets.e2eTest.output.classesDirs.asPath
     systemProperty 'e2e.logDir', layout.buildDirectory.dir('e2e').get().asFile.absolutePath
+    if (btraceJar.isPresent()) {
+        systemProperty 'e2e.btraceJar', file(btraceJar.get()).absolutePath
+        systemProperty 'e2e.serverClasspath', sourceSets.main.runtimeClasspath.asPath
+    }
 }
 
 jacoco {

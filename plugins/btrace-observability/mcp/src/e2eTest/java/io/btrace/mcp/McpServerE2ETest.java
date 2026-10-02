@@ -30,9 +30,10 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
 
 /**
- * Drives the real MCP server, launched through JBang exactly as the plugin manifests launch it,
- * against a live sample JVM. Probe effects are observed through {@code @Export} jvmstat counters
- * read with {@code jcmd}, because no MCP tool returns probe output after deployment.
+ * Drives the real MCP server against a live sample JVM. The server is launched through JBang, as the
+ * plugin manifests launch it, unless the build supplies a BTrace JAR (see build.gradle). Probe
+ * effects are observed through {@code @Export} jvmstat counters read with {@code jcmd}, because no
+ * MCP tool returns probe output after deployment.
  *
  * <p>The steps share one server and one target JVM and must run in order.
  */
@@ -70,10 +71,7 @@ class McpServerE2ETest {
       port = socket.getLocalPort();
     }
 
-    server =
-        new McpStdioClient(
-            List.of("jbang", requiredProperty("e2e.serverScript")),
-            new File(logDir, "mcp-server.err"));
+    server = new McpStdioClient(serverCommand(), new File(logDir, "mcp-server.err"));
     initializeResult = server.initialize(STARTUP);
   }
 
@@ -312,6 +310,26 @@ class McpServerE2ETest {
       map.put((String) keyValues[i], keyValues[i + 1]);
     }
     return map;
+  }
+
+  /**
+   * JBang launch as in the plugin manifests, or, when the build supplies a BTrace JAR, the compiled
+   * server on a plain classpath so the run does not depend on the published BTrace artifact.
+   */
+  private static List<String> serverCommand() {
+    String btraceJar = System.getProperty("e2e.btraceJar");
+    if (btraceJar == null || btraceJar.isEmpty()) {
+      return List.of("jbang", requiredProperty("e2e.serverScript"));
+    }
+    if (!new File(btraceJar).isFile()) {
+      throw new IllegalStateException("BTrace JAR not found: " + btraceJar);
+    }
+    return List.of(
+        javaTool("java"),
+        "--add-modules=jdk.attach",
+        "-cp",
+        requiredProperty("e2e.serverClasspath") + File.pathSeparator + btraceJar,
+        BTraceMcpServer.class.getName());
   }
 
   private static String javaTool(String name) {
