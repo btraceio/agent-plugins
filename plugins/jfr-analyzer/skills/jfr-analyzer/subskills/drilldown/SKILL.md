@@ -1,7 +1,6 @@
 ---
 name: drilldown
 description: Phase 2 of jfr-analyzer. Reads focus.json, optionally gates HPROF analysis behind a cost warning, then dispatches parallel perf-engineer agents — one per selected problem area — each writing structured findings to drilldown/<area>.json.
-allowed-tools: Read Write Bash(find *) Bash(ls *) mcp__jfr-mcp__jfr_query mcp__jfr-mcp__jfr_hotmethods mcp__jfr-mcp__jfr_stackprofile mcp__jfr-mcp__hdump_summary mcp__jfr-mcp__hdump_report mcp__jfr-mcp__hdump_query mcp__jfr-mcp__hdump_help
 ---
 
 ## Setup

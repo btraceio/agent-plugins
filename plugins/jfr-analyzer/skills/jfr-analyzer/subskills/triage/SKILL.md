@@ -1,7 +1,6 @@
 ---
 name: triage
 description: Phase 1 of jfr-analyzer. Opens a profiling file, runs USE+TSA+stackgraph+JVM/GC lanes automatically, presents ranked plain-language problem areas at a breakpoint, and writes focus.json for drilldown.
-allowed-tools: Read Write Bash(find *) Bash(mkdir *) Bash(date *) mcp__jfr-mcp__jfr_help mcp__jfr-mcp__jfr_open mcp__jfr-mcp__jfr_summary mcp__jfr-mcp__jfr_use mcp__jfr-mcp__jfr_tsa mcp__jfr-mcp__jfr_stackprofile mcp__jfr-mcp__jfr_query mcp__jfr-mcp__pprof_open mcp__jfr-mcp__pprof_summary mcp__jfr-mcp__pprof_use mcp__jfr-mcp__pprof_tsa mcp__jfr-mcp__pprof_stackprofile mcp__jfr-mcp__otlp_open mcp__jfr-mcp__otlp_summary mcp__jfr-mcp__otlp_use mcp__jfr-mcp__otlp_stackprofile mcp__jfr-mcp__hdump_open mcp__jfr-mcp__hdump_summary
 ---
 
 ## Setup

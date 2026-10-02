@@ -1,7 +1,6 @@
 ---
 name: jfr-analyzer
 description: Systematic performance investigation of JFR, pprof, OTLP, and HPROF profiling data using USE and TSA methodologies. Entry point for the jfr-analyzer plugin.
-allowed-tools: Read mcp__jfr-mcp__jfr_help
 ---
 
 ## Argument parsing

@@ -1,7 +1,6 @@
 ---
 name: eval
 description: Eval subskill for jfr-analyzer. Routes regen|run|score|help. Manages corpus regeneration (MCP event extraction + oracle validation), eval runs, and scoring.
-allowed-tools: Read Write Bash(find *) Bash(ls *) mcp__jfr-mcp__jfr_open mcp__jfr-mcp__jfr_list_types mcp__jfr-mcp__jfr_close
 ---
 
 ## Argument parsing

@@ -1,7 +1,6 @@
 ---
 name: report
 description: Phase 3 of jfr-analyzer. Reads all drilldown/<area>.json findings, deduplicates overlapping evidence, ranks by user-visible impact, produces plain-language finding cards, and writes report.json with a sphinx-optimize bridge stub.
-allowed-tools: Read Write Bash(find *) Bash(ls *)
 ---
 
 ## Setup

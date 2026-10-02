@@ -1,7 +1,6 @@
 ---
 name: perf-engineer
 description: Use when a user wants to optimize a running Java application from a PID, optionally with a source directory. Coordinates bounded profiling, JFR analysis, BTrace workload characterization, representative JMH benchmarks, evidence-backed optimization ideas, candidate validation, and an explicitly approved draft PR.
-allowed-tools: Read Bash(mkdir *) Bash(find *) Bash(ls *) Bash(jps *) mcp__jfr-mcp__jfr_help mcp__jfr-mcp__jfr_open mcp__jfr-mcp__jfr_summary mcp__jfr-mcp__jfr_use mcp__jfr-mcp__jfr_tsa mcp__jfr-mcp__jfr_stackprofile mcp__jfr-mcp__jfr_query mcp__btrace__list_jvms mcp__btrace__list_probes
 ---
 
 # Perf Engineer

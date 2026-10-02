@@ -1,7 +1,6 @@
 ---
 name: btrace-mcp-operations
 description: Use when an AI client should operate BTrace through the BTrace MCP server to list local JVMs, deploy probes, inspect output, or clean up diagnostic sessions.
-allowed-tools: Read mcp__btrace__list_jvms mcp__btrace__list_probes
 ---
 
 # MCP Operations
