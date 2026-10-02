@@ -24,6 +24,8 @@ import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Reflective adapter for the client section of BTrace's masked distribution JAR.
@@ -33,6 +35,9 @@ import java.security.ProtectionDomain;
  * {@code MaskedClassLoader} boundary used by {@code java -jar btrace.jar}.
  */
 public final class BTraceClient {
+  private static final Logger log = LoggerFactory.getLogger(BTraceClient.class);
+  private static final String JAR_PATH_PROPERTY = "btrace.jar.path";
+
   @FunctionalInterface
   public interface CommandListener {
     void onCommand(Object command) throws Exception;
@@ -60,6 +65,11 @@ public final class BTraceClient {
   public static BTraceClient create(int port) throws Exception {
     Class<?> loaderClass = Class.forName("io.btrace.boot.MaskedClassLoader");
     File jar = jarFile(loaderClass);
+    // The client locates the agent JAR via this property or a classpath entry named btrace.jar;
+    // JBang puts the versioned Maven artifact (btrace-<version>.jar) on the classpath instead.
+    if (jar.isFile() && System.getProperty(JAR_PATH_PROPERTY) == null) {
+      System.setProperty(JAR_PATH_PROPERTY, jar.getAbsolutePath());
+    }
     Constructor<?> constructor = loaderClass.getConstructor(File.class, String.class, ClassLoader.class);
     ClassLoader loader =
         (ClassLoader) constructor.newInstance(jar, "client", BTraceClient.class.getClassLoader());
@@ -113,6 +123,27 @@ public final class BTraceClient {
         .getMethod(
             "submit", String.class, String.class, byte[].class, String[].class, commandListenerClass)
         .invoke(delegate, host, fileName, code, args, listenerProxy(listener));
+  }
+
+  /**
+   * Submits a probe on a daemon thread. The client's submit runs the probe command loop until the
+   * probe exits or the client is closed, so it must not block the MCP request thread.
+   */
+  public Thread submitInBackground(
+      String host, String fileName, byte[] code, String[] args, CommandListener listener) {
+    Thread thread =
+        new Thread(
+            () -> {
+              try {
+                submit(host, fileName, code, args, listener);
+              } catch (Exception e) {
+                log.debug("Probe command loop for {} ended", fileName, e);
+              }
+            },
+            "btrace-probe-" + fileName);
+    thread.setDaemon(true);
+    thread.start();
+    return thread;
   }
 
   public void listProbes(String host, CommandListener listener) throws Exception {

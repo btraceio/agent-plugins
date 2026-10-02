@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "btrace": {
+      "command": "jbang",
+      "args": ["mcp/src/main/java/io/btrace/mcp/BTraceMcpServer.java"],
+      "cwd": "."
+    }
+  }
+}

@@ -15,6 +15,7 @@
     "diagnostics"
   ],
   "skills": "./skills/",
+  "mcpServers": "./.codex-plugin/mcp.json",
   "interface": {
     "displayName": "BTrace Observability",
     "shortDescription": "Diagnose Java behavior with focused probes.",

@@ -1,0 +1,90 @@
+name: MCP e2e
+
+# Runs the BTrace MCP server end-to-end tests against a BTrace distribution built from source, so the
+# job never depends on a published or locally installed io.btrace:btrace artifact. No LLM is involved.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'plugins/btrace-observability/mcp/**'
+      - '.github/workflows/mcp-e2e.yml'
+  pull_request:
+    paths:
+      - 'plugins/btrace-observability/mcp/**'
+      - '.github/workflows/mcp-e2e.yml'
+  workflow_dispatch:
+    inputs:
+      btrace-ref:
+        description: 'BTrace branch, tag or SHA to build (default: the repository default branch)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mcp-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      # setup-java registers every JDK in ~/.m2/toolchains.xml, where Gradle discovers toolchains.
+      # BTrace builds with toolchains 8 to 26; the MCP module uses 11. The last entry is JAVA_HOME.
+      - name: Set up JDKs
+        uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5
+        with:
+          distribution: temurin
+          java-version: |
+            8
+            11
+            17
+            24
+            26
+            21
+
+      - name: Check out agent plugins
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+
+      - name: Check out BTrace
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          repository: btraceio/btrace
+          ref: ${{ inputs.btrace-ref }}
+          path: btrace
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6
+
+      - name: Build the BTrace distribution JAR
+        working-directory: btrace
+        run: ./gradlew --no-daemon :btrace-dist:btraceJar
+
+      - name: Locate the BTrace JAR
+        run: |
+          shopt -s nullglob
+          jars=("$GITHUB_WORKSPACE"/btrace/btrace-dist/build/resources/main/v*/libs/btrace.jar)
+          if [ "${#jars[@]}" -ne 1 ]; then
+            echo "::error::expected exactly one btrace.jar, found ${#jars[@]}: ${jars[*]}"
+            exit 1
+          fi
+          echo "BTRACE_JAR=${jars[0]}" >> "$GITHUB_ENV"
+          echo "Using ${jars[0]} from BTrace $(git -C btrace rev-parse --short HEAD)"
+
+      - name: Run MCP end-to-end tests
+        working-directory: plugins/btrace-observability/mcp
+        run: ./gradlew --no-daemon e2eTest
+
+      - name: Upload e2e logs and reports
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: mcp-e2e-logs
+          retention-days: 7
+          path: |
+            plugins/btrace-observability/mcp/build/e2e
+            plugins/btrace-observability/mcp/build/reports/tests/e2eTest
+            plugins/btrace-observability/mcp/build/test-results/e2eTest

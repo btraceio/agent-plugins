@@ -1,13 +1,22 @@
 ---
 name: btrace-mcp-operations
-description: Use when an AI client should operate BTrace through the BTrace MCP server to list local JVMs, deploy probes, inspect output, or clean up diagnostic sessions.
+description: Use when an AI client should operate BTrace through the BTrace MCP server to list local JVMs, deploy probes, trigger probe events, or clean up diagnostic sessions.
 ---
 
 # MCP Operations
 
 The BTrace MCP server offers structured local-JVM operations such as `list_jvms`, `deploy_oneliner`,
-`deploy_script`, `list_probes`, and `exit_probe`. It is suitable when the AI client and target JVM
-are on the same host and the operator wants an auditable conversational workflow.
+`deploy_script`, `send_event`, `detach_probe`, and `exit_probe`. It is suitable when the AI client
+and target JVM are on the same host and the operator wants an auditable conversational workflow.
+
+Do not call `list_probes`. The current BTrace client exits the process after returning the probe
+list, which terminates the MCP server and drops every open probe session, so `send_event` and
+`exit_probe` can no longer reach probes deployed earlier. Track each deployment yourself instead:
+target PID, agent port, probe class or oneliner, and observation window.
+
+Deployment results include only the probe's initial output; no tool returns what the probe prints
+afterwards. When the operator needs ongoing results, have the probe write them somewhere they can
+read, such as exported counters (`@Export` fields, read with `jcmd <PID> PerfCounter.print`).
 
 - The MCP server uses the local JVM Attach API; it cannot attach across SSH, Docker, or Kubernetes
   boundaries. For those cases, first use `btrace-runtime-access` to place the client/server in the
