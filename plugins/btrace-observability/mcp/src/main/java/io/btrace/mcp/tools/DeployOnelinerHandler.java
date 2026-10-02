@@ -114,12 +114,16 @@ public final class DeployOnelinerHandler {
       AtomicBoolean success = new AtomicBoolean(false);
       AtomicBoolean exited = new AtomicBoolean(false);
 
-      client.submit(
+      client.submitInBackground(
           "localhost",
           fileName,
           code,
           new String[0],
           cmd -> {
+            if (statusLatch.getCount() == 0) {
+              // Later probe output is not reported; do not buffer it for the probe's lifetime.
+              return;
+            }
             output.append(client.printableText(cmd));
             int type = client.commandType(cmd);
             if (type == client.commandConstant("STATUS")) {
@@ -136,10 +140,12 @@ public final class DeployOnelinerHandler {
       boolean started = statusLatch.await(PROBE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
       if (!started) {
+        closeQuietly(client);
         return toolResult("Probe deployment timed out after " + PROBE_TIMEOUT_SECONDS + "s", true);
       }
 
       if (exited.get() && !success.get()) {
+        closeQuietly(client);
         return toolResult("Probe exited with error:\n" + output.toString(), true);
       }
 
@@ -164,6 +170,14 @@ public final class DeployOnelinerHandler {
     } catch (Exception e) {
       log.error("Failed to deploy oneliner", e);
       return toolResult("Error deploying oneliner: " + e.getMessage(), true);
+    }
+  }
+
+  private static void closeQuietly(BTraceClient client) {
+    try {
+      client.close();
+    } catch (Exception e) {
+      log.debug("Failed to close BTrace client", e);
     }
   }
 

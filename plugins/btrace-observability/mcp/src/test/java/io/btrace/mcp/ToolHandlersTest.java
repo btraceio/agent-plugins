@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.btrace.client.Client;
 import io.btrace.mcp.tools.DeployOnelinerHandler;
 import io.btrace.mcp.tools.DeployScriptHandler;
 import io.btrace.mcp.tools.DetachProbeHandler;
@@ -71,6 +72,24 @@ class ToolHandlersTest {
     Map<String, Object> probes = ListProbesHandler.execute(Map.of("pid", "53", "port", 2053));
     assertFalse((Boolean) probes.get("isError"));
     assertTrue(text(probes).contains("Active probes on PID 53"));
+  }
+
+  @Test
+  void namesScriptSourceAfterItsDeclaredClass() {
+    String script = "// this class traces orders\n/* class Ignored */\n@BTrace public class OrderTrace {}";
+    assertFalse(
+        (Boolean)
+            DeployScriptHandler.execute(Map.of("pid", "54", "script", script, "port", 2054))
+                .get("isError"));
+    assertEquals("OrderTrace.java", Client.last.submittedFileName);
+    ExitProbeHandler.execute(Map.of("pid", "54", "port", 2054));
+
+    assertFalse(
+        (Boolean)
+            DeployScriptHandler.execute(Map.of("pid", "55", "script", "@BTrace", "port", 2055))
+                .get("isError"));
+    assertTrue(Client.last.submittedFileName.matches("BTraceScript_\\d+\\.java"));
+    ExitProbeHandler.execute(Map.of("pid", "55", "port", 2055));
   }
 
   @SuppressWarnings("unchecked")
