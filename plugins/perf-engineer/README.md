@@ -17,12 +17,15 @@ The first supervisor implementation manages one async-profiler recording. It val
 enforces a maximum duration, persists state, and supports stop/status/cleanup:
 
 ```sh
-jbang plugins/perf-engineer/scripts/PerfEngineerSession.java start <pid> \
+plugins/perf-engineer/scripts/PerfEngineerSession.java start <pid> \
   --event cpu --duration 30 --output /tmp/profile.jfr
-jbang plugins/perf-engineer/scripts/PerfEngineerSession.java status <session-id>
-jbang plugins/perf-engineer/scripts/PerfEngineerSession.java stop <session-id>
-jbang plugins/perf-engineer/scripts/PerfEngineerSession.java cleanup <session-id>
+plugins/perf-engineer/scripts/PerfEngineerSession.java status <session-id>
+plugins/perf-engineer/scripts/PerfEngineerSession.java stop <session-id>
+plugins/perf-engineer/scripts/PerfEngineerSession.java cleanup <session-id>
 ```
+
+The scripts are executable JBang programs; if the executable bit is lost (for example on a Windows
+checkout), run them as `jbang plugins/perf-engineer/scripts/PerfEngineerSession.java <args>` instead.
 
 Set `ASYNC_PROFILER_HOME` or pass `--profiler` when the async-profiler CLI is not on `PATH`. This
 supervises one recording only; BTrace probes and later analysis remain separate workflow phases.
@@ -30,5 +33,5 @@ supervises one recording only; BTrace probes and later analysis remain separate 
 Run the supervisor regression tests with:
 
 ```sh
-jbang plugins/perf-engineer/scripts/PerfEngineerSessionTest.java
+plugins/perf-engineer/scripts/PerfEngineerSessionTest.java
 ```

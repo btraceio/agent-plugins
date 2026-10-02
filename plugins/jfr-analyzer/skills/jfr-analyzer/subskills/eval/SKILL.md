@@ -139,7 +139,9 @@ Parse `--scenario` and `--multi-judge` flags from $ARGUMENTS.
 
 Run (JBang resolves the Jackson dependency on first use):
 ```bash
-cd <EVAL_DIR>/scripts && jbang Score.java [--scenario <id> if set] [--multi-judge if set]
+cd <EVAL_DIR>/scripts && ./Score.java [--scenario <id> if set] [--multi-judge if set]
 ```
+
+If `./Score.java` is not executable, use `jbang Score.java` with the same flags.
 
 Display the generated report content.
