@@ -16,6 +16,7 @@
       "./plugins/jfr-analyzer/skills",
       "./plugins/jafar-perf/skills",
       "./plugins/perf-engineer/skills"
-    ]
+    ],
+    "mcp": "./plugins/jafar-perf/.mcp.json"
   }
 }
