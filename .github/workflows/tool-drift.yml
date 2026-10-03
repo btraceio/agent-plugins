@@ -1,0 +1,91 @@
+name: Tool drift
+
+# The skills and agents of the jfr-mcp plugins name the server's tools explicitly, and the server is
+# developed in btraceio/jafar. The drift this job exists to catch therefore happens when *that*
+# repository changes, not when this one does, so a push-triggered job alone would never run at the
+# moment it matters. The weekly schedule is the point; the push and pull_request triggers only catch
+# typos and keep the script itself working.
+on:
+  schedule:
+    - cron: '17 6 * * 1' # Mondays, 06:17 UTC
+  push:
+    branches: [main]
+    paths:
+      - 'plugins/**'
+      - 'scripts/check-tool-references.js'
+      - '.github/workflows/tool-drift.yml'
+  pull_request:
+    paths:
+      - 'plugins/**'
+      - 'scripts/check-tool-references.js'
+      - '.github/workflows/tool-drift.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Skills reference tools that exist
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      issues: write # only used to report a scheduled failure
+    steps:
+      - name: Check agent-plugins
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+
+      - name: Set up Java for JBang
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      # Deliberately the same install path the jfr-mcp README tells users to run, so a break in
+      # that path shows up here rather than in someone's terminal.
+      - name: Install the published MCP server
+        run: |
+          curl -Ls https://raw.githubusercontent.com/btraceio/jafar/main/jfr-mcp/install.sh | bash
+          echo "$HOME/.jbang/bin" >> "$GITHUB_PATH"
+
+      - name: Check every referenced tool exists
+        run: node scripts/check-tool-references.js
+
+      # A scheduled run failing means upstream moved, and nobody is watching a cron job. An issue
+      # is how that reaches a human.
+      - name: Open an issue when the scheduled run finds drift
+        if: failure() && github.event_name == 'schedule'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = 'Skills reference MCP tools the published server no longer exposes';
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo,
+              state: 'open', labels: ['tool-drift'],
+            });
+            const body = [
+              'The weekly tool-drift check failed: at least one skill or agent names an MCP tool',
+              'that `jfr-mcp@btraceio` does not expose. That usually means a tool was renamed or',
+              'removed in btraceio/jafar.',
+              '',
+              `Run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              '',
+              'The log names each tool and the exact file and line that references it.',
+            ].join('\n');
+            if (existing.data.length === 0) {
+              await github.rest.issues.create({
+                owner: context.repo.owner, repo: context.repo.repo,
+                title, body, labels: ['tool-drift'],
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: existing.data[0].number, body,
+              });
+            }
