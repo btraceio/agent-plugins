@@ -41,6 +41,18 @@
       "category": "Developer Tools"
     },
     {
+      "name": "jafar-perf",
+      "source": {
+        "source": "local",
+        "path": "./plugins/jafar-perf"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
       "name": "perf-engineer",
       "source": {
         "source": "local",

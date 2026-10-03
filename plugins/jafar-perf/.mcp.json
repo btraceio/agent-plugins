@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "jfr-mcp": {
+    "jafar": {
       "type": "stdio",
       "command": "jbang",
       "args": [

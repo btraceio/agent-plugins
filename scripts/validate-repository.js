@@ -45,7 +45,8 @@ function walk(dir) {
 walk(path.join(root, 'plugins'));
 for (const file of skillFiles) {
   const body = fs.readFileSync(file, 'utf8');
-  if (!/^---\nname: [a-z0-9-]+\ndescription: .+\n---/m.test(body)) errors.push(`${path.relative(root, file)}: invalid front matter`);
+  // name and description first, then any other single-line fields (e.g. allowed-tools) before the closing rule.
+  if (!/^---\nname: [a-z0-9-]+\ndescription: .+\n(?:[a-z][a-z-]*: .+\n)*---/m.test(body)) errors.push(`${path.relative(root, file)}: invalid front matter`);
 }
 
 if (errors.length) {

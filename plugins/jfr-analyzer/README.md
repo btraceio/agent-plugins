@@ -7,11 +7,13 @@ probes, using one target/window/evidence record across the three instruments.
 
 ## Host support
 
-The shared skills work in Claude Code, Codex, and Pi. The plugin expects a Jafar MCP server at `http://localhost:3000/mcp/sse`:
+The shared skills work in Claude Code, Codex, and Pi. The plugin's `.mcp.json` registers the Jafar MCP server as `jfr-mcp`, started through JBang and attached to one shared daemon that starts on demand:
 
 ```bash
-jbang jafar-mcp@btraceio
+jbang jfr-mcp@btraceio --stdio --attach
 ```
+
+`--attach` needs a `jfr-mcp` release that has the flag; an older one ignores it and runs a private server, which still works.
 
 Configure the same `jfr-mcp` server in the host when automatic plugin MCP loading is unavailable. The skills refer to the server by capability (`jfr_open`, `jfr_query`, `jfr_summary`, and related tools); host-specific MCP namespaces may differ.
 

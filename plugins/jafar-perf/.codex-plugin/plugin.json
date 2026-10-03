@@ -1,0 +1,38 @@
+{
+  "name": "jafar-perf",
+  "version": "0.1.0",
+  "description": "JVM performance engineering with the Jafar MCP server: triage, CPU, latency, GC, memory-leak and regression-comparison playbooks, plus specialist analysis subagents.",
+  "author": {
+    "name": "BTrace",
+    "url": "https://github.com/btraceio"
+  },
+  "repository": "https://github.com/btraceio/agent-plugins",
+  "license": "Apache-2.0",
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "keywords": [
+    "jfr",
+    "jvm",
+    "performance",
+    "profiling",
+    "heap-dump",
+    "pprof",
+    "otlp"
+  ],
+  "interface": {
+    "displayName": "Jafar Performance Engineer",
+    "shortDescription": "Guided JVM performance analysis with evidence for every claim.",
+    "longDescription": "Turns the Jafar MCP server into a guided JVM performance analyst: methodology skills for CPU, latency, GC, memory and heap investigations, plus specialist subagents that cite the tool call behind every claim.",
+    "developerName": "BTrace",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Guidance",
+      "Analysis"
+    ],
+    "defaultPrompt": [
+      "Analyse this JFR recording and tell me why p99 latency doubled.",
+      "Compare these two recordings and tell me what regressed.",
+      "Use perf-lead to review this heap dump and recording."
+    ]
+  }
+}
