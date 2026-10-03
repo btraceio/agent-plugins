@@ -1,0 +1,22 @@
+{
+  "name": "jafar-perf",
+  "version": "0.1.0",
+  "description": "JVM performance engineering with the Jafar MCP server: triage, CPU, latency, GC, memory-leak and regression-comparison playbooks, plus specialist analysis subagents.",
+  "author": {
+    "name": "BTrace",
+    "url": "https://github.com/btraceio"
+  },
+  "repository": "https://github.com/btraceio/agent-plugins",
+  "license": "Apache-2.0",
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "keywords": [
+    "jfr",
+    "jvm",
+    "performance",
+    "profiling",
+    "heap-dump",
+    "pprof",
+    "otlp"
+  ]
+}

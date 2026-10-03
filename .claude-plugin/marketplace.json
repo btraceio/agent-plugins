@@ -24,6 +24,12 @@
       "source": "./plugins/jfr-analyzer"
     },
     {
+      "name": "jafar-perf",
+      "description": "JVM performance engineering with the Jafar MCP server: triage, CPU, latency, GC, memory-leak and regression playbooks, plus specialist subagents.",
+      "version": "0.1.0",
+      "source": "./plugins/jafar-perf"
+    },
+    {
       "name": "perf-engineer",
       "description": "Evidence-driven Java optimization investigations with JFR, BTrace, and JMH.",
       "version": "0.1.0",
