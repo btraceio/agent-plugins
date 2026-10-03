@@ -19,7 +19,7 @@ and agents, and the server lives in another repository. After changing those nam
 `jfr-mcp` release lands, check that every referenced tool still exists:
 
 ```sh
-node scripts/check-tool-references.js                    # published server, via jbang
+node scripts/check-tool-references.js                    # published server, via jbang --fresh
 node scripts/check-tool-references.js --jar path/to.jar  # a locally built shadow jar
 ```
 

@@ -11,7 +11,7 @@
 // to register at runtime. Asking the server is exactly what an MCP client does.
 //
 // Usage:
-//   node scripts/check-tool-references.js                     # jbang jfr-mcp@btraceio --stdio
+//   node scripts/check-tool-references.js                     # jbang --fresh jfr-mcp@btraceio --stdio
 //   node scripts/check-tool-references.js --jar path/to.jar   # a locally built shadow jar
 //   node scripts/check-tool-references.js --command "..."     # any command speaking MCP on stdio
 //
@@ -38,7 +38,9 @@ const HANDSHAKE = [
 ];
 
 function parseArgs(argv) {
-  const args = { command: 'jbang jfr-mcp@btraceio --stdio', timeout: 180 };
+  // --fresh, because jbang caches the catalog: without it a stale alias answers with an old server
+  // and the check reports drift that is not there.
+  const args = { command: 'jbang --fresh jfr-mcp@btraceio --stdio', timeout: 180 };
   for (let i = 2; i < argv.length; i++) {
     if (argv[i] === '--jar') args.command = `java -jar ${argv[++i]} --stdio`;
     else if (argv[i] === '--command') args.command = argv[++i];
