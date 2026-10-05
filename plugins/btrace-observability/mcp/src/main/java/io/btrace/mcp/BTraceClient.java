@@ -152,6 +152,13 @@ public final class BTraceClient {
         .invoke(delegate, host, listenerProxy(listener));
   }
 
+  /** Reconnects to a detached probe and stops it; returns once the agent confirms the exit. */
+  public void exitProbe(String host, String probeId) throws Exception {
+    clientClass
+        .getMethod("connectAndExitProbe", String.class, String.class)
+        .invoke(delegate, host, probeId);
+  }
+
   public void sendExit(int code) throws Exception {
     clientClass.getMethod("sendExit", int.class).invoke(delegate, code);
   }

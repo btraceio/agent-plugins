@@ -53,6 +53,8 @@ class BTraceClientTest {
     assertEquals("localhost", client.printableText(probes.get()));
     assertEquals(Command.LIST_PROBES, client.commandType(probes.get()));
     assertEquals("", client.printableText(new Command(Command.EXIT)));
+    client.exitProbe("localhost", "probe-1");
+    assertEquals("localhost:probe-1", delegate.exitedProbe);
 
     client.sendEvent();
     assertEquals("", delegate.event);

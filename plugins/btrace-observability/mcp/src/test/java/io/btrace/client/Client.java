@@ -15,6 +15,7 @@ public class Client {
   public boolean disconnected;
   public boolean closed;
   public String submittedFileName;
+  public String exitedProbe;
   private final CountDownLatch closeLatch = new CountDownLatch(1);
 
   public Client(int port) {
@@ -40,6 +41,14 @@ public class Client {
 
   public void connectAndListProbes(String host, CommandListener listener) throws Exception {
     listener.onCommand(new FakePrintableCommand(Command.LIST_PROBES, host));
+  }
+
+  public void connectAndExitProbe(String host, String probeId) throws Exception {
+    exitedProbe = host + ':' + probeId;
+    if (probeId.equals("hang")) {
+      // An agent that never confirms the exit: only closing the client ends the wait.
+      closeLatch.await();
+    }
   }
 
   public void sendExit(int code) {

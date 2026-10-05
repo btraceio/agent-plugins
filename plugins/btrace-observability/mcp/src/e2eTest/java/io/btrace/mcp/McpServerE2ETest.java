@@ -103,7 +103,8 @@ class McpServerE2ETest {
             "list_probes",
             "send_event",
             "detach_probe",
-            "exit_probe"),
+            "exit_probe",
+            "stop_detached_probe"),
         tools);
   }
 
@@ -212,6 +213,29 @@ class McpServerE2ETest {
 
   @Test
   @Order(10)
+  void stopDetachedProbeRemovesTheListedProbe() throws Exception {
+    String entry =
+        text(tool("list_probes"))
+            .lines()
+            .filter(line -> line.contains(RUNNING_PROBE))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("detached probe is not listed"));
+
+    Map<String, Object> stopped = tool("stop_detached_probe", "probe_id", entry);
+    assertSuccess(stopped);
+    // Give in-flight handler invocations time to drain, then require the counter to stay frozen.
+    Thread.sleep(1_000);
+    long frozen = counter(RUNNING_PROBE, "processCalls");
+    Thread.sleep(2_000);
+    assertEquals(
+        frozen, counter(RUNNING_PROBE, "processCalls"), "probe still firing after stop_detached_probe");
+
+    assertFalse(text(tool("list_probes")).contains(RUNNING_PROBE), "stopped probe is still listed");
+    assertTrue(isError(tool("stop_detached_probe", "probe_id", entry)), "probe stopped twice");
+  }
+
+  @Test
+  @Order(11)
   void targetSurvivesTheWholeSession() {
     assertTrue(sampleApp.isAlive(), "sample app died during the session");
     assertTrue(server.isAlive(), "MCP server died during the session");
