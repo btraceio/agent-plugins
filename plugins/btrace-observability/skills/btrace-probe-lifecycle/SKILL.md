@@ -14,7 +14,8 @@ condition.
 3. Exercise the scenario or observe only for the agreed window.
 4. List probes that a client detached from and that are still running with `btrace -lp <PID>` (the
    `list_probes` tool when working through the BTrace MCP server); reconnect only when
-   intentionally continuing an existing probe with `btrace -r <probe-id> <PID>`.
+   intentionally continuing an existing probe with `btrace -r <probe-id> <PID>`, and stop one with
+   `btrace -r <probe-id> exit <PID>` (`stop_detached_probe` through the MCP server).
 5. Stop/remove the probe at the end of the window, archive or delete the output according to policy,
    and remove temporary probe files from the target host/container/pod.
 

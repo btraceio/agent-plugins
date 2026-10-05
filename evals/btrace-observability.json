@@ -161,12 +161,12 @@
       "list_jvms",
       "list_probes",
       "pid",
-      "btrace -r"
+      "stop_detached_probe"
     ],
     "mustAvoid": [
       "kill -9"
     ],
-    "rubric": "Find the target PID, list detached probes with list_probes, explain that the MCP server cannot stop a probe it did not deploy in this session, and hand the operator the CLI reconnect command to stop it without killing the target JVM."
+    "rubric": "Find the target PID, list detached probes with list_probes, confirm with the operator that the probe is no longer needed, and stop it with stop_detached_probe by its id without killing the target JVM."
   },
   {
     "id": "legacy-libs-migration",
