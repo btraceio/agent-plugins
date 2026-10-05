@@ -12,8 +12,9 @@ condition.
 2. Attach with an explicit output file when a durable incident record is required:
    `btrace -v -o trace.log <PID> Probe.java`.
 3. Exercise the scenario or observe only for the agreed window.
-4. Check active probes with `btrace -lp <PID>`; reconnect only when intentionally continuing an
-   existing probe with `btrace -r <probe-id> <PID>`.
+4. List probes that a client detached from and that are still running with `btrace -lp <PID>` (the
+   `list_probes` tool when working through the BTrace MCP server); reconnect only when
+   intentionally continuing an existing probe with `btrace -r <probe-id> <PID>`.
 5. Stop/remove the probe at the end of the window, archive or delete the output according to policy,
    and remove temporary probe files from the target host/container/pod.
 

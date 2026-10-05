@@ -141,12 +141,32 @@
       "list_jvms",
       "pid",
       "duration",
+      "list_probes",
       "exit_probe"
     ],
     "mustAvoid": [
       "grantAll=true"
     ],
-    "rubric": "Use the local MCP workflow: identify the PID, deploy a bounded latency probe, and explicitly remove it with exit_probe."
+    "rubric": "Use the local MCP workflow: identify the PID, check for probes left running with list_probes, deploy a bounded latency probe, and explicitly remove it with exit_probe."
+  },
+  {
+    "id": "mcp-leftover-probe",
+    "prompt": "Yesterday an assistant session used the BTrace MCP server on my local JVM and I think it detached from a probe instead of stopping it. Is anything still running, and how do I get rid of it?",
+    "requiredSkills": [
+      "btrace-observability",
+      "btrace-mcp-operations",
+      "btrace-probe-lifecycle"
+    ],
+    "mustMention": [
+      "list_jvms",
+      "list_probes",
+      "pid",
+      "btrace -r"
+    ],
+    "mustAvoid": [
+      "kill -9"
+    ],
+    "rubric": "Find the target PID, list detached probes with list_probes, explain that the MCP server cannot stop a probe it did not deploy in this session, and hand the operator the CLI reconnect command to stop it without killing the target JVM."
   },
   {
     "id": "legacy-libs-migration",
