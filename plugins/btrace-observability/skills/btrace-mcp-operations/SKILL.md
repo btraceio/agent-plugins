@@ -6,13 +6,17 @@ description: Use when an AI client should operate BTrace through the BTrace MCP 
 # MCP Operations
 
 The BTrace MCP server offers structured local-JVM operations such as `list_jvms`, `deploy_oneliner`,
-`deploy_script`, `send_event`, `detach_probe`, and `exit_probe`. It is suitable when the AI client
-and target JVM are on the same host and the operator wants an auditable conversational workflow.
+`deploy_script`, `list_probes`, `send_event`, `detach_probe`, and `exit_probe`. It is suitable when
+the AI client and target JVM are on the same host and the operator wants an auditable conversational
+workflow.
 
-Do not call `list_probes`. The current BTrace client exits the process after returning the probe
-list, which terminates the MCP server and drops every open probe session, so `send_event` and
-`exit_probe` can no longer reach probes deployed earlier. Track each deployment yourself instead:
-target PID, agent port, probe class or oneliner, and observation window.
+`list_probes` reports only probes that were detached with `detach_probe` and are still running on
+the target; probes deployed in the current session that are still attached do not appear. Call it
+before deploying, so probes left behind by an earlier session are found rather than stacked on, and
+after any `detach_probe` to confirm what is still running. The MCP server cannot reconnect to or
+stop a listed probe: report it to the operator, who can reconnect with `btrace -r <probe-id> <PID>`
+and stop it. Track your own deployments yourself: target PID, agent port, probe class or oneliner,
+and observation window.
 
 Deployment results include only the probe's initial output; no tool returns what the probe prints
 afterwards. When the operator needs ongoing results, have the probe write them somewhere they can
@@ -22,7 +26,8 @@ read, such as exported counters (`@Export` fields, read with `jcmd <PID> PerfCou
   boundaries. For those cases, first use `btrace-runtime-access` to place the client/server in the
   target environment.
 - Treat deployment and cleanup as one operation: record the target PID and call `exit_probe` after
-  the observation window.
+  the observation window. Prefer `exit_probe` over `detach_probe`; a detached probe keeps running
+  and is visible afterwards only through `list_probes`.
 - Use the server's `diagnose_slow_endpoint`, `find_exception_source`, and `profile_method` prompts
   as starting workflows, then apply the other plugin skills for scope and data safety.
 

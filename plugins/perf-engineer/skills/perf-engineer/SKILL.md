@@ -70,7 +70,8 @@ capability, record its actual command/tool identity in the session manifest.
 Confirm target identity, Java/runtime boundary, source repository and base commit, dirty-worktree
 state, available tools, recording window, output location, sensitivity policy, and profiling/live
 instrumentation approval. Check for existing async-profiler/JFR/BTrace sessions or conflicts before
-attaching; ask before stopping or reconfiguring one.
+attaching (for BTrace, the BTrace MCP server's `list_probes` tool or `btrace -lp <PID>` lists
+detached probes still running); ask before stopping or reconfiguring one.
 
 Create a session manifest and local supervisor. The supervisor owns child processes, leases, durable
 stop, timeout enforcement, cleanup, and state transitions. On restart, list active/orphaned sessions;
