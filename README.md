@@ -9,7 +9,7 @@ one another so the workflow instructions and supporting scripts are maintained o
 
 | Plugin | Purpose |
 | --- | --- |
-| `btrace-development` | Repository conventions and build guidance for BTrace development. |
+| [`btrace-development`](plugins/btrace-development/README.md) | Repository conventions and build guidance for BTrace development. |
 | [`btrace-observability`](plugins/btrace-observability/README.md) | A composable SRE skill suite for diagnosing Java applications with BTrace probes. |
 | [`jfr-analyzer`](plugins/jfr-analyzer/README.md) | Systematic profile analysis with optional BTrace live-probe correlation. |
 | [`jafar-perf`](plugins/jafar-perf/README.md) | Guided JVM performance analysis on the Jafar MCP server: playbooks for CPU, latency, GC and memory, and specialist subagents. |
