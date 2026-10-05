@@ -22,7 +22,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.LongPredicate;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -204,9 +203,6 @@ class McpServerE2ETest {
 
   @Test
   @Order(9)
-  @Disabled(
-      "BTrace Client.connectAndListProbes calls System.exit(0) after the reply, which terminates"
-          + " the MCP server process; needs a BTrace client change")
   void listProbesReportsTheRunningProbe() throws Exception {
     Map<String, Object> result = tool("list_probes");
     assertSuccess(result);

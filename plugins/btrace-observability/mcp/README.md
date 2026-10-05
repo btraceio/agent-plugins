@@ -36,5 +36,3 @@ at its masked JAR:
 ```sh
 BTRACE_JAR=/path/to/btrace/btrace-dist/build/resources/main/v<version>/libs/btrace.jar ./gradlew e2eTest
 ```
-
-The `list_probes` case is disabled because the BTrace client exits the JVM after listing probes.

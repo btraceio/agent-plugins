@@ -6,13 +6,14 @@ description: Use when an AI client should operate BTrace through the BTrace MCP 
 # MCP Operations
 
 The BTrace MCP server offers structured local-JVM operations such as `list_jvms`, `deploy_oneliner`,
-`deploy_script`, `send_event`, `detach_probe`, and `exit_probe`. It is suitable when the AI client
-and target JVM are on the same host and the operator wants an auditable conversational workflow.
+`deploy_script`, `list_probes`, `send_event`, `detach_probe`, and `exit_probe`. It is suitable when
+the AI client and target JVM are on the same host and the operator wants an auditable conversational
+workflow.
 
-Do not call `list_probes`. The current BTrace client exits the process after returning the probe
-list, which terminates the MCP server and drops every open probe session, so `send_event` and
-`exit_probe` can no longer reach probes deployed earlier. Track each deployment yourself instead:
-target PID, agent port, probe class or oneliner, and observation window.
+`list_probes` reports only probes that were detached with `detach_probe` and are still running on
+the target; probes deployed in the current session that are still attached do not appear. Use it to
+find probes left behind by an earlier session, and track your own deployments yourself: target PID,
+agent port, probe class or oneliner, and observation window.
 
 Deployment results include only the probe's initial output; no tool returns what the probe prints
 afterwards. When the operator needs ongoing results, have the probe write them somewhere they can
