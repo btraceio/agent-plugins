@@ -14,6 +14,7 @@
 //SOURCES ./tools/ListJvmsHandler.java
 //SOURCES ./tools/ListProbesHandler.java
 //SOURCES ./tools/SendEventHandler.java
+//SOURCES ./tools/StopDetachedProbeHandler.java
 
 /*
  * Copyright (c) 2008, 2024, Jaroslav Bachorik <j.bachorik@btrace.io>.
@@ -41,6 +42,7 @@ import io.btrace.mcp.tools.ExitProbeHandler;
 import io.btrace.mcp.tools.ListJvmsHandler;
 import io.btrace.mcp.tools.ListProbesHandler;
 import io.btrace.mcp.tools.SendEventHandler;
+import io.btrace.mcp.tools.StopDetachedProbeHandler;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -167,6 +169,7 @@ public final class BTraceMcpServer {
     tools.add(SendEventHandler.schema());
     tools.add(DetachProbeHandler.schema());
     tools.add(ExitProbeHandler.schema());
+    tools.add(StopDetachedProbeHandler.schema());
 
     Map<String, Object> result = new LinkedHashMap<>();
     result.put("tools", tools);
@@ -207,6 +210,9 @@ public final class BTraceMcpServer {
         break;
       case "exit_probe":
         result = ExitProbeHandler.execute(arguments);
+        break;
+      case "stop_detached_probe":
+        result = StopDetachedProbeHandler.execute(arguments);
         break;
       default:
         protocol.sendError(id, -32602, "Unknown tool: " + toolName);
