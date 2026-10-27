@@ -18,6 +18,7 @@ package io.btrace.mcp.tools;
 
 import io.btrace.mcp.BTraceClient;
 import io.btrace.mcp.ClientManager;
+import io.btrace.mcp.ProbeOutput;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -110,6 +111,7 @@ public final class DeployOnelinerHandler {
       client.attach(pid, null, ".");
 
       StringBuilder output = new StringBuilder();
+      ProbeOutput probeOutput = new ProbeOutput(ProbeOutput.DEFAULT_MAX_CHARS);
       CountDownLatch statusLatch = new CountDownLatch(1);
       AtomicBoolean success = new AtomicBoolean(false);
       AtomicBoolean exited = new AtomicBoolean(false);
@@ -121,7 +123,12 @@ public final class DeployOnelinerHandler {
           new String[0],
           cmd -> {
             if (statusLatch.getCount() == 0) {
-              // Later probe output is not reported; do not buffer it for the probe's lifetime.
+              // After startup, keep what the probe prints for read_probe_output and exit_probe.
+              if (client.commandType(cmd) == client.commandConstant("EXIT")) {
+                probeOutput.finish();
+              } else {
+                probeOutput.append(client.printableText(cmd));
+              }
               return;
             }
             output.append(client.printableText(cmd));
@@ -149,7 +156,7 @@ public final class DeployOnelinerHandler {
         return toolResult("Probe exited with error:\n" + output.toString(), true);
       }
 
-      ClientManager.registerClient(pid, port, client);
+      ClientManager.registerClient(pid, port, client, probeOutput);
 
       String resultText =
           "Probe deployed successfully to PID "
@@ -165,7 +172,8 @@ public final class DeployOnelinerHandler {
         resultText += "\nInitial output:\n" + output.toString();
       }
       resultText +=
-          "\nUse send_event, detach_probe, or exit_probe to interact with the running probe.";
+          "\nRead what it prints with read_probe_output; stop it with exit_probe, which also returns"
+              + " its remaining output.";
       return toolResult(resultText, false);
     } catch (Exception e) {
       log.error("Failed to deploy oneliner", e);

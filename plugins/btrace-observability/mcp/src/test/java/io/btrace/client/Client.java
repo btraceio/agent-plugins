@@ -4,10 +4,16 @@ import io.btrace.core.comm.Command;
 import io.btrace.core.comm.CommandListener;
 import io.btrace.core.comm.FakePrintableCommand;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 public class Client {
   public static Client last;
+  /** Lines every later probe prints after it reports its start, as the agent would. */
+  public static final List<String> laterOutput = new ArrayList<>();
+  /** What a probe prints while it shuts down after an exit request. */
+  public static String exitOutput = "";
   public final int port;
   public String attachedPid;
   public int exitCode;
@@ -17,6 +23,7 @@ public class Client {
   public String submittedFileName;
   public String exitedProbe;
   private final CountDownLatch closeLatch = new CountDownLatch(1);
+  private CommandListener listener;
 
   public Client(int port) {
     this.port = port;
@@ -34,7 +41,11 @@ public class Client {
   public void submit(
       String host, String fileName, byte[] code, String[] args, CommandListener listener) throws Exception {
     submittedFileName = fileName;
+    this.listener = listener;
     listener.onCommand(new FakePrintableCommand(Command.STATUS, host + ':' + fileName));
+    for (String line : laterOutput) {
+      listener.onCommand(new FakePrintableCommand(Command.MESSAGE, line));
+    }
     // Like the real client, keep running the probe command loop until the client is closed.
     closeLatch.await();
   }
@@ -51,8 +62,14 @@ public class Client {
     }
   }
 
-  public void sendExit(int code) {
+  public void sendExit(int code) throws Exception {
     exitCode = code;
+    if (listener != null) {
+      if (!exitOutput.isEmpty()) {
+        listener.onCommand(new FakePrintableCommand(Command.MESSAGE, exitOutput));
+      }
+      listener.onCommand(new Command(Command.EXIT));
+    }
   }
 
   public void sendDisconnect() {

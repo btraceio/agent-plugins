@@ -19,11 +19,18 @@ public class Failures {
       method = "create",
       location = @Location(Kind.ERROR))
   public static void failed(
-      @ProbeClassName String clazz, @ProbeMethodName String method, Throwable error) {
+      @ProbeClassName String clazz,
+      @ProbeMethodName String method,
+      @TargetInstance Throwable error) {
     println("failure in " + clazz + "." + method + ": " + str(error));
   }
 }
 ```
+
+At `Kind.ERROR` the exception goes to the parameter annotated `@TargetInstance`; from BTrace 3.0 a
+plain `Throwable` parameter works too when none is annotated. At `Kind.CATCH` and `Kind.THROW` the
+exception parameter must be annotated `@TargetInstance`: there, an unannotated parameter is matched
+against the method's own arguments and a handler that does not match them is silently not applied.
 
 Use `jstack()` only for a short, approved window on low/moderate traffic. It can add overhead and
 expose implementation details. Correlate output with the application's normal logs and request ID

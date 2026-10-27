@@ -100,6 +100,7 @@ class McpServerE2ETest {
             "list_jvms",
             "deploy_oneliner",
             "deploy_script",
+            "read_probe_output",
             "list_probes",
             "send_event",
             "detach_probe",
@@ -190,6 +191,27 @@ class McpServerE2ETest {
 
   @Test
   @Order(8)
+  void readProbeOutputReturnsWhatTheProbePrints() throws Exception {
+    assertSuccess(tool("deploy_oneliner", "oneliner", TARGET + "::process @return { print method }"));
+
+    String printed = "";
+    long deadline = System.nanoTime() + PROBE_EFFECT.toNanos();
+    while (!printed.contains("process") && System.nanoTime() < deadline) {
+      Thread.sleep(250);
+      Map<String, Object> read = tool("read_probe_output");
+      assertSuccess(read);
+      printed = text(read);
+    }
+    assertTrue(printed.contains("process"), "probe output never reached the client:\n" + printed);
+
+    Map<String, Object> exited = tool("exit_probe");
+    assertSuccess(exited);
+    assertTrue(text(exited).contains("Probe stopped and removed from PID " + pid));
+    assertTrue(isError(tool("read_probe_output")), "session should be gone after exit");
+  }
+
+  @Test
+  @Order(9)
   void exitProbeRemovesTheInstrumentation() throws Exception {
     assertSuccess(tool("deploy_script", "script", exitProbeScript()));
     awaitCounter(EXIT_PROBE, "calls", calls -> calls > 0);
@@ -203,7 +225,7 @@ class McpServerE2ETest {
   }
 
   @Test
-  @Order(9)
+  @Order(10)
   void listProbesReportsTheRunningProbe() throws Exception {
     Map<String, Object> result = tool("list_probes");
     assertSuccess(result);
@@ -212,7 +234,7 @@ class McpServerE2ETest {
   }
 
   @Test
-  @Order(10)
+  @Order(11)
   void stopDetachedProbeRemovesTheListedProbe() throws Exception {
     String entry =
         text(tool("list_probes"))
@@ -235,7 +257,7 @@ class McpServerE2ETest {
   }
 
   @Test
-  @Order(11)
+  @Order(12)
   void targetSurvivesTheWholeSession() {
     assertTrue(sampleApp.isAlive(), "sample app died during the session");
     assertTrue(server.isAlive(), "MCP server died during the session");

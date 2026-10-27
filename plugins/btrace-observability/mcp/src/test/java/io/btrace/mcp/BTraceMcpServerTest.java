@@ -28,6 +28,7 @@ class BTraceMcpServerTest {
     assertTrue(responses[1].contains("\"description\":\"List local attachable JVMs.\""));
     assertTrue(responses[1].contains("\"description\":\"Stop and remove an active probe.\""));
     assertTrue(responses[1].contains("\"name\":\"stop_detached_probe\""));
+    assertTrue(responses[1].contains("\"name\":\"read_probe_output\""));
   }
 
   @Test
@@ -51,7 +52,8 @@ class BTraceMcpServerTest {
         "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"missing\"}\n"
             + "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/call\"}\n"
             + "{\"jsonrpc\":\"2.0\",\"id\":3,\"method\":\"tools/call\",\"params\":{\"name\":\"missing\"}}\n"
-            + "{\"jsonrpc\":\"2.0\",\"id\":4,\"method\":\"tools/call\",\"params\":{\"name\":\"stop_detached_probe\",\"arguments\":{\"pid\":\"42\"}}}\n";
+            + "{\"jsonrpc\":\"2.0\",\"id\":4,\"method\":\"tools/call\",\"params\":{\"name\":\"stop_detached_probe\",\"arguments\":{\"pid\":\"42\"}}}\n"
+            + "{\"jsonrpc\":\"2.0\",\"id\":5,\"method\":\"tools/call\",\"params\":{\"name\":\"read_probe_output\",\"arguments\":{\"pid\":\"42\"}}}\n";
     ByteArrayOutputStream output = new ByteArrayOutputStream();
     new BTraceMcpServer(
             new McpProtocol(
@@ -63,5 +65,6 @@ class BTraceMcpServerTest {
     assertTrue(response.contains("Missing params"));
     assertTrue(response.contains("Unknown tool: missing"));
     assertTrue(response.contains("Error: 'probe_id' parameter is required"));
+    assertTrue(response.contains("No active BTrace session for PID 42"));
   }
 }

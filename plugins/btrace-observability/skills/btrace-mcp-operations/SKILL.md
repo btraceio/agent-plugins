@@ -6,8 +6,8 @@ description: Use when an AI client should operate BTrace through the BTrace MCP 
 # MCP Operations
 
 The BTrace MCP server offers structured local-JVM operations such as `list_jvms`, `deploy_oneliner`,
-`deploy_script`, `list_probes`, `send_event`, `detach_probe`, `exit_probe`, and
-`stop_detached_probe`. It is suitable when the AI client and target JVM are on the same host and the
+`deploy_script`, `read_probe_output`, `list_probes`, `send_event`, `detach_probe`, `exit_probe`,
+and `stop_detached_probe`. It is suitable when the AI client and target JVM are on the same host and the
 operator wants an auditable conversational workflow.
 
 `list_probes` reports only probes that were detached with `detach_probe` and are still running on
@@ -18,9 +18,17 @@ after any `detach_probe` to confirm what is still running. Stop a listed probe w
 confirms it is no longer needed; another person or session may own it. Track your own deployments
 yourself: target PID, agent port, probe class or oneliner, and observation window.
 
-Deployment results include only the probe's initial output; no tool returns what the probe prints
-afterwards. When the operator needs ongoing results, have the probe write them somewhere they can
-read, such as exported counters (`@Export` fields, read with `jcmd <PID> PerfCounter.print`).
+Deployment results include only the probe's initial output. The server keeps what the probe prints
+afterwards: `read_probe_output` returns everything printed since the previous read without
+stopping the probe, and `exit_probe` and `detach_probe` return whatever is still unread. Pass
+`wait_seconds` (up to 30) to let the observation window pass inside the call: it returns as soon as
+the probe prints. A read that still says there is no new output means the probed code did not run
+or the probe's condition did not match yet. The server keeps at most 64 KB of unread
+output per probe and drops the oldest lines beyond that, saying how many, so keep probes narrow
+and guard noisy ones with a condition such as a duration threshold. Output is held only while the
+session that deployed the probe is alive; for results that must outlive it, or that the operator
+reads elsewhere, have the probe export counters (`@Export` fields, read with
+`jcmd <PID> PerfCounter.print`).
 
 - The MCP server uses the local JVM Attach API; it cannot attach across SSH, Docker, or Kubernetes
   boundaries. For those cases, first use `btrace-runtime-access` to place the client/server in the

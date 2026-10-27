@@ -169,6 +169,28 @@
     "rubric": "Find the target PID, list detached probes with list_probes, confirm with the operator that the probe is no longer needed, and stop it with stop_detached_probe by its id without killing the target JVM."
   },
   {
+    "id": "mcp-read-probe-output",
+    "prompt": "Some checkouts in the order service running on this machine are slow. Use the BTrace MCP server to find which method is slow and by how much, and do not leave anything attached.",
+    "requiredSkills": [
+      "btrace-observability",
+      "btrace-mcp-operations",
+      "btrace-latency-analysis",
+      "btrace-probe-lifecycle"
+    ],
+    "mustMention": [
+      "list_jvms",
+      "pid",
+      "duration",
+      "read_probe_output",
+      "exit_probe"
+    ],
+    "mustAvoid": [
+      "grantAll=true",
+      "kill -9"
+    ],
+    "rubric": "Find the PID, deploy a narrow latency probe guarded by a duration threshold, let an observation window pass, read the probe's output with read_probe_output, base the conclusion on the printed durations, then remove the probe with exit_probe and use the output it returns."
+  },
+  {
     "id": "legacy-libs-migration",
     "prompt": "We upgraded BTrace and now our probes fail on com.acme.support classes. The agent is started with libs=acme and there is a btrace-libs/acme directory next to the jar. How do we get this working again?",
     "requiredSkills": [

@@ -31,6 +31,9 @@ public final class ClientManager {
   /** Key is "pid:port", value is the active Client instance. */
   private static final Map<String, BTraceClient> activeClients = new ConcurrentHashMap<>();
 
+  /** Key is "pid:port", value is the output the active probe printed and no tool has read yet. */
+  private static final Map<String, ProbeOutput> activeOutputs = new ConcurrentHashMap<>();
+
   private ClientManager() {}
 
   /** Creates a new BTrace Client for the given port. Does not reuse existing sessions. */
@@ -45,6 +48,17 @@ public final class ClientManager {
     log.debug("Registered client for {}", key);
   }
 
+  /** Registers a client together with the buffer that collects its probe's output. */
+  public static void registerClient(String pid, int port, BTraceClient client, ProbeOutput output) {
+    activeOutputs.put(pid + ":" + port, output);
+    registerClient(pid, port, client);
+  }
+
+  /** Returns the output buffer of the active probe for the given PID and port, or null if none. */
+  public static ProbeOutput getOutput(String pid, int port) {
+    return activeOutputs.get(pid + ":" + port);
+  }
+
   /** Returns an existing active client for the given PID and port, or null if none. */
   public static BTraceClient getExistingClient(String pid, int port) {
     String key = pid + ":" + port;
@@ -55,6 +69,7 @@ public final class ClientManager {
   public static BTraceClient removeClient(String pid, int port) {
     String key = pid + ":" + port;
     BTraceClient removed = activeClients.remove(key);
+    activeOutputs.remove(key);
     if (removed != null) {
       log.debug("Removed client for {}", key);
     }
@@ -72,5 +87,6 @@ public final class ClientManager {
       }
     }
     activeClients.clear();
+    activeOutputs.clear();
   }
 }

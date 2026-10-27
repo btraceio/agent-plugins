@@ -18,6 +18,7 @@ package io.btrace.mcp.tools;
 
 import io.btrace.mcp.BTraceClient;
 import io.btrace.mcp.ClientManager;
+import io.btrace.mcp.ProbeOutput;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -29,6 +30,8 @@ import org.slf4j.LoggerFactory;
 public final class ExitProbeHandler {
   private static final Logger log = LoggerFactory.getLogger(ExitProbeHandler.class);
   private static final int DEFAULT_PORT = 2020;
+  /** How long to wait for the agent to confirm the exit, so the probe's last output arrives. */
+  private static final long EXIT_CONFIRM_MILLIS = 3_000;
 
   private ExitProbeHandler() {}
 
@@ -76,7 +79,11 @@ public final class ExitProbeHandler {
         return toolResult("No active BTrace session for PID " + pid, true);
       }
 
+      ProbeOutput output = ClientManager.getOutput(pid, port);
       client.sendExit(0);
+      if (output != null) {
+        output.awaitFinished(EXIT_CONFIRM_MILLIS);
+      }
       ClientManager.removeClient(pid, port);
       // sendExit only sends the command; close the socket so it is not leaked.
       try {
@@ -84,7 +91,11 @@ public final class ExitProbeHandler {
       } catch (Exception ignore) {
         // best effort
       }
-      return toolResult("Probe stopped and removed from PID " + pid, false);
+      String text = "Probe stopped and removed from PID " + pid;
+      if (output != null) {
+        text += ProbeOutput.section("Output since the last read", output.drain());
+      }
+      return toolResult(text, false);
     } catch (Exception e) {
       log.error("Failed to exit probe", e);
       return toolResult("Error stopping probe on PID " + pid + ": " + e.getMessage(), true);

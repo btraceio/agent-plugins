@@ -18,6 +18,7 @@ package io.btrace.mcp.tools;
 
 import io.btrace.mcp.BTraceClient;
 import io.btrace.mcp.ClientManager;
+import io.btrace.mcp.ProbeOutput;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -79,6 +80,7 @@ public final class DetachProbeHandler {
         return toolResult("No active BTrace session for PID " + pid, true);
       }
 
+      ProbeOutput output = ClientManager.getOutput(pid, port);
       client.sendDisconnect();
       ClientManager.removeClient(pid, port);
       // sendDisconnect only sends the command; close the socket so it is not leaked.
@@ -87,7 +89,11 @@ public final class DetachProbeHandler {
       } catch (Exception ignore) {
         // best effort
       }
-      return toolResult("Detached from probe on PID " + pid + ". Probe continues running.", false);
+      String text = "Detached from probe on PID " + pid + ". Probe continues running.";
+      if (output != null) {
+        text += ProbeOutput.section("Output since the last read", output.drain());
+      }
+      return toolResult(text, false);
     } catch (Exception e) {
       log.error("Failed to detach probe", e);
       return toolResult("Error detaching from PID " + pid + ": " + e.getMessage(), true);

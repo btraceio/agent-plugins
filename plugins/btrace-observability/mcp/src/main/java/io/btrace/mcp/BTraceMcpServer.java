@@ -6,6 +6,7 @@
 //SOURCES ./BTraceClient.java
 //SOURCES ./ClientManager.java
 //SOURCES ./McpProtocol.java
+//SOURCES ./ProbeOutput.java
 //SOURCES ./prompts/DiagnosticPrompts.java
 //SOURCES ./tools/DeployOnelinerHandler.java
 //SOURCES ./tools/DeployScriptHandler.java
@@ -13,6 +14,7 @@
 //SOURCES ./tools/ExitProbeHandler.java
 //SOURCES ./tools/ListJvmsHandler.java
 //SOURCES ./tools/ListProbesHandler.java
+//SOURCES ./tools/ReadProbeOutputHandler.java
 //SOURCES ./tools/SendEventHandler.java
 //SOURCES ./tools/StopDetachedProbeHandler.java
 
@@ -41,6 +43,7 @@ import io.btrace.mcp.tools.DetachProbeHandler;
 import io.btrace.mcp.tools.ExitProbeHandler;
 import io.btrace.mcp.tools.ListJvmsHandler;
 import io.btrace.mcp.tools.ListProbesHandler;
+import io.btrace.mcp.tools.ReadProbeOutputHandler;
 import io.btrace.mcp.tools.SendEventHandler;
 import io.btrace.mcp.tools.StopDetachedProbeHandler;
 import java.io.IOException;
@@ -165,6 +168,7 @@ public final class BTraceMcpServer {
     tools.add(ListJvmsHandler.schema());
     tools.add(DeployOnelinerHandler.schema());
     tools.add(DeployScriptHandler.schema());
+    tools.add(ReadProbeOutputHandler.schema());
     tools.add(ListProbesHandler.schema());
     tools.add(SendEventHandler.schema());
     tools.add(DetachProbeHandler.schema());
@@ -198,6 +202,9 @@ public final class BTraceMcpServer {
         break;
       case "deploy_script":
         result = DeployScriptHandler.execute(arguments);
+        break;
+      case "read_probe_output":
+        result = ReadProbeOutputHandler.execute(arguments);
         break;
       case "list_probes":
         result = ListProbesHandler.execute(arguments);

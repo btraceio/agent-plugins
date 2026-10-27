@@ -4,6 +4,7 @@ public class Command {
   public static final int STATUS = 1;
   public static final int EXIT = 2;
   public static final int LIST_PROBES = 3;
+  public static final int MESSAGE = 4;
 
   private final int type;
 

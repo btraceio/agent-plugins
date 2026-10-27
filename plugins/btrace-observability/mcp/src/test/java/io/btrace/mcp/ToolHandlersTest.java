@@ -11,6 +11,7 @@ import io.btrace.mcp.tools.DetachProbeHandler;
 import io.btrace.mcp.tools.ExitProbeHandler;
 import io.btrace.mcp.tools.ListJvmsHandler;
 import io.btrace.mcp.tools.ListProbesHandler;
+import io.btrace.mcp.tools.ReadProbeOutputHandler;
 import io.btrace.mcp.tools.SendEventHandler;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,7 @@ class ToolHandlersTest {
     assertRequired(SendEventHandler.schema(), "pid");
     assertRequired(DetachProbeHandler.schema(), "pid");
     assertRequired(ExitProbeHandler.schema(), "pid");
+    assertRequired(ReadProbeOutputHandler.schema(), "pid");
     assertEquals("list_jvms", ListJvmsHandler.schema().get("name"));
   }
 
@@ -38,6 +40,7 @@ class ToolHandlersTest {
     assertError(SendEventHandler.execute(Map.of()), "pid");
     assertError(DetachProbeHandler.execute(Map.of()), "pid");
     assertError(ExitProbeHandler.execute(Map.of()), "pid");
+    assertError(ReadProbeOutputHandler.execute(Map.of()), "pid");
   }
 
   @Test
@@ -72,6 +75,90 @@ class ToolHandlersTest {
     Map<String, Object> probes = ListProbesHandler.execute(Map.of("pid", "53", "port", 2053));
     assertFalse((Boolean) probes.get("isError"));
     assertTrue(text(probes).contains("Active probes on PID 53"));
+  }
+
+  @Test
+  void returnsWhatAProbePrintsAfterItStarts() {
+    Client.laterOutput.add("processOrder 412ms\n");
+    Client.laterOutput.add("chargeCard 398ms\n");
+    Client.exitOutput = "chargeCard 305ms\n";
+    try {
+      assertFalse(
+          (Boolean)
+              DeployOnelinerHandler.execute(
+                      Map.of("pid", "56", "oneliner", "orders.Api::create @return { print duration }", "port", 2056))
+                  .get("isError"));
+
+      // The probe prints on its own thread, so collect reads until both lines are in.
+      StringBuilder printed = new StringBuilder();
+      for (int i = 0; i < 10 && !printed.toString().contains("chargeCard 398ms"); i++) {
+        Map<String, Object> read =
+            ReadProbeOutputHandler.execute(Map.of("pid", "56", "port", 2056, "wait_seconds", 1));
+        assertFalse((Boolean) read.get("isError"));
+        printed.append(text(read));
+      }
+      assertTrue(printed.toString().contains("processOrder 412ms\n"), printed.toString());
+      assertTrue(printed.toString().contains("chargeCard 398ms\n"), printed.toString());
+
+      Map<String, Object> again = ReadProbeOutputHandler.execute(Map.of("pid", "56", "port", 2056));
+      assertFalse((Boolean) again.get("isError"));
+      assertTrue(text(again).contains("No new output"), text(again));
+      assertFalse(text(again).contains("chargeCard 398ms"), text(again));
+
+      Map<String, Object> exited = ExitProbeHandler.execute(Map.of("pid", "56", "port", 2056));
+      assertFalse((Boolean) exited.get("isError"));
+      assertTrue(text(exited).contains("Probe stopped and removed from PID 56"), text(exited));
+      assertTrue(text(exited).contains("chargeCard 305ms"), text(exited));
+      assertFalse(text(exited).contains("chargeCard 398ms"), "already-read output is not repeated");
+
+      assertError(ReadProbeOutputHandler.execute(Map.of("pid", "56", "port", 2056)), "No active BTrace session");
+    } finally {
+      Client.laterOutput.clear();
+      Client.exitOutput = "";
+    }
+  }
+
+  @Test
+  void readCanWaitForTheProbeToPrint() throws Exception {
+    DeployOnelinerHandler.execute(
+        Map.of("pid", "58", "oneliner", "orders.Api::create @return { print duration }", "port", 2058));
+    Thread printer =
+        new Thread(
+            () -> {
+              try {
+                Thread.sleep(200);
+              } catch (InterruptedException e) {
+                return;
+              }
+              ClientManager.getOutput("58", 2058).append("authorize 488ms\n");
+            });
+    printer.start();
+
+    Map<String, Object> read =
+        ReadProbeOutputHandler.execute(Map.of("pid", "58", "port", 2058, "wait_seconds", 10));
+    assertFalse((Boolean) read.get("isError"));
+    assertTrue(text(read).contains("authorize 488ms"), text(read));
+    printer.join();
+
+    long start = System.nanoTime();
+    Map<String, Object> capped =
+        ReadProbeOutputHandler.execute(Map.of("pid", "58", "port", 2058, "wait_seconds", -5));
+    assertTrue(text(capped).contains("No new output"), text(capped));
+    assertTrue(System.nanoTime() - start < 1_000_000_000L, "a negative wait does not block");
+    ExitProbeHandler.execute(Map.of("pid", "58", "port", 2058));
+  }
+
+  @Test
+  void detachReturnsTheUnreadOutput() {
+    Client.laterOutput.add("validateOrder threw IllegalStateException\n");
+    try {
+      DeployScriptHandler.execute(Map.of("pid", "57", "script", "class Trace {}", "port", 2057));
+      Map<String, Object> detached = DetachProbeHandler.execute(Map.of("pid", "57", "port", 2057));
+      assertFalse((Boolean) detached.get("isError"));
+      assertTrue(text(detached).contains("validateOrder threw IllegalStateException"), text(detached));
+    } finally {
+      Client.laterOutput.clear();
+    }
   }
 
   @Test
