@@ -36,12 +36,14 @@ for (const resource of pi.pi?.skills || []) if (!exists(resource.replace(/^\.\//
 if (pi.pi?.mcp && !exists(pi.pi.mcp.replace(/^\.\//, ''))) errors.push(`pi: missing MCP config ${pi.pi.mcp}`);
 
 const skillFiles = [];
+const agentFiles = [];
 const javaFiles = [];
 function walk(dir) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const file = path.join(dir, entry.name);
     if (entry.isDirectory()) walk(file);
     else if (entry.name === 'SKILL.md') skillFiles.push(file);
+    else if (entry.name.endsWith('.md') && path.basename(dir) === 'agents') agentFiles.push(file);
     else if (entry.name.endsWith('.java')) javaFiles.push(file);
   }
 }
@@ -50,6 +52,18 @@ for (const file of skillFiles) {
   const body = fs.readFileSync(file, 'utf8');
   // name and description first, then any other single-line fields (e.g. allowed-tools) before the closing rule.
   if (!/^---\nname: [a-z0-9-]+\ndescription: .+\n(?:[a-z][a-z-]*: .+\n)*---/m.test(body)) errors.push(`${path.relative(root, file)}: invalid front matter`);
+}
+
+// Claude Code names plugin tools mcp__plugin_<plugin>_<server>__<tool>; any other form in an
+// allowlist matches nothing, and the agent silently runs without the tool.
+for (const file of [...skillFiles, ...agentFiles]) {
+  const plugin = path.relative(path.join(root, 'plugins'), file).split(path.sep)[0];
+  const mcpConfig = `plugins/${plugin}/.mcp.json`;
+  const servers = exists(mcpConfig) ? Object.keys(readJson(mcpConfig).mcpServers) : [];
+  const frontMatter = fs.readFileSync(file, 'utf8').match(/^---\n[\s\S]*?\n---/)?.[0] || '';
+  for (const [name] of frontMatter.matchAll(/\bmcp__[a-z0-9_-]+/g)) {
+    if (!servers.some(server => name.startsWith(`mcp__plugin_${plugin}_${server}__`))) errors.push(`${path.relative(root, file)}: ${name} is not a tool of this plugin's MCP server`);
+  }
 }
 
 // JBang searches only Maven Central unless told otherwise, so a snapshot dependency needs a repository.

@@ -1,7 +1,7 @@
 ---
 name: gc
 description: Analyse garbage collection pressure, pause times, heap sizing and allocation hotspots in a JFR recording. Use when triage reports high GC pressure, when the user asks about GC pauses, heap growth, allocation rate, OutOfMemoryError risk, or which code allocates the most.
-allowed-tools: mcp__jafar__jfr_query mcp__jafar__jfr_use mcp__jafar__jfr_flamegraph mcp__jafar__jfr_list_types mcp__jafar__jfr_summary
+allowed-tools: mcp__plugin_jafar-perf_jafar__jfr_query mcp__plugin_jafar-perf_jafar__jfr_use mcp__plugin_jafar-perf_jafar__jfr_flamegraph mcp__plugin_jafar-perf_jafar__jfr_list_types mcp__plugin_jafar-perf_jafar__jfr_summary
 ---
 
 # GC and allocation analysis

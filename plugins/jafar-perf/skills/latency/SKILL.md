@@ -1,7 +1,7 @@
 ---
 name: latency
 description: Investigate response-time problems that are not CPU-bound — lock contention, thread parking, executor queue saturation, blocking I/O, and per-endpoint latency attribution. Use when the user reports slow requests, p99 spikes, timeouts, deadlock suspicion, or when triage shows threads blocked rather than running.
-allowed-tools: mcp__jafar__jfr_tsa mcp__jafar__jfr_use mcp__jafar__jfr_query mcp__jafar__jfr_list_types mcp__jafar__jfr_stackprofile mcp__jafar__pprof_tsa
+allowed-tools: mcp__plugin_jafar-perf_jafar__jfr_tsa mcp__plugin_jafar-perf_jafar__jfr_use mcp__plugin_jafar-perf_jafar__jfr_query mcp__plugin_jafar-perf_jafar__jfr_list_types mcp__plugin_jafar-perf_jafar__jfr_stackprofile mcp__plugin_jafar-perf_jafar__pprof_tsa
 ---
 
 # Latency analysis

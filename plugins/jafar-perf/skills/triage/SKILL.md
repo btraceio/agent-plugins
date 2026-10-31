@@ -1,7 +1,7 @@
 ---
 name: triage
 description: First step for any unfamiliar JFR recording, pprof profile, OTLP profile, or heap dump. Establishes what the artifact contains, what is anomalous, and which specialised playbook to run next. Use when the user says "analyse this recording", "what is wrong with this JVM", "why is this slow", or hands over a .jfr/.hprof/.pprof/.otlp file without a specific question.
-allowed-tools: mcp__jafar__jfr_open mcp__jafar__jfr_summary mcp__jafar__jfr_diagnose mcp__jafar__jfr_list_types mcp__jafar__hdump_open mcp__jafar__hdump_summary mcp__jafar__hdump_report mcp__jafar__pprof_open mcp__jafar__pprof_summary mcp__jafar__otlp_open mcp__jafar__otlp_summary
+allowed-tools: mcp__plugin_jafar-perf_jafar__jfr_open mcp__plugin_jafar-perf_jafar__jfr_summary mcp__plugin_jafar-perf_jafar__jfr_diagnose mcp__plugin_jafar-perf_jafar__jfr_list_types mcp__plugin_jafar-perf_jafar__hdump_open mcp__plugin_jafar-perf_jafar__hdump_summary mcp__plugin_jafar-perf_jafar__hdump_report mcp__plugin_jafar-perf_jafar__pprof_open mcp__plugin_jafar-perf_jafar__pprof_summary mcp__plugin_jafar-perf_jafar__otlp_open mcp__plugin_jafar-perf_jafar__otlp_summary
 ---
 
 # Triage

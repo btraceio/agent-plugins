@@ -51,10 +51,10 @@ Read `<EVAL_DIR>/corpus/manifest.json`.
 For each scenario in the manifest:
 
 1. `file_path` = `<EVAL_DIR>/corpus/<scenario.file>`
-2. Call `mcp__jfr-mcp__jfr_open` with path=`<file_path>`
+2. Call `jfr_open` with path=`<file_path>`
 3. Extract `sessionId` from the response.
-4. Call `mcp__jfr-mcp__jfr_list_types` with `sessionId`
-5. Call `mcp__jfr-mcp__jfr_close` with `sessionId`
+4. Call `jfr_list_types` with `sessionId`
+5. Call `jfr_close` with `sessionId`
 6. Collect the list of event type names from the jfr_list_types response
 
 After iterating all scenarios, use the Write tool to update manifest.json:

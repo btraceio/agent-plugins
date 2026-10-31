@@ -1,7 +1,7 @@
 ---
 name: heap-analyst
 description: Specialist for heap dump analysis — retained sizes, dominator tree, GC root paths, known leak detectors, graph-based clusters, collection waste, duplicate subgraphs, heap-to-heap diffs, and correlating retained objects with JFR allocation sites. Dispatch for any .hprof file, OutOfMemoryError, or memory that never comes back after GC.
-tools: mcp__jafar__hdump_open, mcp__jafar__hdump_close, mcp__jafar__hdump_summary, mcp__jafar__hdump_report, mcp__jafar__hdump_query, mcp__jafar__hdump_help, mcp__jafar__jfr_open, Read, Grep, Glob
+tools: mcp__plugin_jafar-perf_jafar__hdump_open, mcp__plugin_jafar-perf_jafar__hdump_close, mcp__plugin_jafar-perf_jafar__hdump_summary, mcp__plugin_jafar-perf_jafar__hdump_report, mcp__plugin_jafar-perf_jafar__hdump_query, mcp__plugin_jafar-perf_jafar__hdump_help, mcp__plugin_jafar-perf_jafar__jfr_open, Read, Grep, Glob
 skills: memory-leak, heap-diff, report
 model: sonnet
 ---

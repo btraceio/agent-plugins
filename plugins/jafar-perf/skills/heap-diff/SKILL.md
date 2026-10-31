@@ -1,7 +1,7 @@
 ---
 name: heap-diff
 description: Compare two or more heap dumps taken at different times to prove memory growth rather than infer it — class-level instance and retained-size deltas, newly appeared clusters, and objects that survived when they should not have. Use whenever two .hprof files of the same application are available, or when a single-dump finding needs confirmation.
-allowed-tools: mcp__jafar__hdump_open mcp__jafar__hdump_query mcp__jafar__hdump_summary mcp__jafar__hdump_close
+allowed-tools: mcp__plugin_jafar-perf_jafar__hdump_open mcp__plugin_jafar-perf_jafar__hdump_query mcp__plugin_jafar-perf_jafar__hdump_summary mcp__plugin_jafar-perf_jafar__hdump_close
 ---
 
 # Heap diff

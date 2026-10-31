@@ -1,13 +1,15 @@
 ---
 name: io-analyst
 description: Specialist for I/O analysis of a JFR recording — slow file and socket operations, per-destination latency and throughput, and separating dependency slowness from JVM problems. Dispatch when USE analysis flags I/O, or when latency correlates with external calls rather than with locks or CPU.
-tools: mcp__jafar__jfr_use, mcp__jafar__jfr_query, mcp__jafar__jfr_list_types, mcp__jafar__jfr_tsa, Read, Grep, Glob
+tools: mcp__plugin_jafar-perf_jafar__jfr_open, mcp__plugin_jafar-perf_jafar__jfr_close, mcp__plugin_jafar-perf_jafar__jfr_use, mcp__plugin_jafar-perf_jafar__jfr_query, mcp__plugin_jafar-perf_jafar__jfr_list_types, mcp__plugin_jafar-perf_jafar__jfr_tsa, Read, Grep, Glob
 skills: latency, report
 model: sonnet
 ---
 
 You analyse blocking I/O. Follow the `latency` skill's I/O section; report in the `report`
 format.
+
+If you were not given an open session id, open the artifact yourself and close it when you finish.
 
 Start from `jfr_use resources=io`, then break down by destination:
 

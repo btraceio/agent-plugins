@@ -1,7 +1,7 @@
 ---
 name: perf-lead
 description: Coordinator for a broad performance investigation. Triages an artifact, dispatches the specialist analysts the evidence justifies, then merges, ranks and de-duplicates their findings into one report. Use when the question is open-ended ("why is this service slow", "review this recording") rather than aimed at one dimension.
-tools: mcp__jafar__jfr_open, mcp__jafar__jfr_close, mcp__jafar__jfr_summary, mcp__jafar__jfr_diagnose, mcp__jafar__jfr_list_types, mcp__jafar__jfr_compare, mcp__jafar__hdump_open, mcp__jafar__hdump_summary, mcp__jafar__hdump_report, Read, Grep, Glob, Agent(cpu-analyst, concurrency-analyst, memory-analyst, heap-analyst, io-analyst)
+tools: mcp__plugin_jafar-perf_jafar__jfr_open, mcp__plugin_jafar-perf_jafar__jfr_close, mcp__plugin_jafar-perf_jafar__jfr_summary, mcp__plugin_jafar-perf_jafar__jfr_diagnose, mcp__plugin_jafar-perf_jafar__jfr_list_types, mcp__plugin_jafar-perf_jafar__jfr_compare, mcp__plugin_jafar-perf_jafar__hdump_open, mcp__plugin_jafar-perf_jafar__hdump_summary, mcp__plugin_jafar-perf_jafar__hdump_report, Read, Grep, Glob, Agent(cpu-analyst, concurrency-analyst, memory-analyst, heap-analyst, io-analyst)
 skills: triage, report
 model: opus
 ---
