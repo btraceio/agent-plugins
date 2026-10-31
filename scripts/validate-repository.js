@@ -33,7 +33,7 @@ function checkCatalog(catalog, kind) {
 checkCatalog(claude, 'claude');
 checkCatalog(codex, 'codex');
 for (const resource of pi.pi?.skills || []) if (!exists(resource.replace(/^\.\//, ''))) errors.push(`pi: missing ${resource}`);
-if (pi.pi?.mcp && !exists(pi.pi.mcp.replace(/^\.\//, ''))) errors.push(`pi: missing MCP config ${pi.pi.mcp}`);
+for (const resource of pi.pi?.extensions || []) if (!exists(resource.replace(/^\.\//, ''))) errors.push(`pi: missing ${resource}`);
 
 const skillFiles = [];
 const agentFiles = [];

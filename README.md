@@ -21,6 +21,7 @@ one another so the workflow instructions and supporting scripts are maintained o
 .claude-plugin/marketplace.json    Claude Code catalog
 .agents/plugins/marketplace.json   Codex catalog
 package.json                        Pi package manifest
+extensions/mcp-servers.ts           Pi MCP server registration
 plugins/<name>/skills/              shared Agent Skills content
 plugins/<name>/.claude-plugin/      Claude Code manifest
 plugins/<name>/.codex-plugin/       Codex manifest
@@ -40,6 +41,9 @@ plugins/<name>/.codex-plugin/       Codex manifest
 ```sh
 pi install git:github.com/btraceio/agent-plugins
 ```
+
+The package registers the `jafar` and `btrace` MCP servers through an extension. They start with JBang, and
+`btrace` also needs JDK 11 or later on the host that can attach to the target JVM.
 
 ### Codex
 
