@@ -16,14 +16,17 @@
 package io.btrace.mcp;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
+import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +40,7 @@ import org.slf4j.LoggerFactory;
 public final class BTraceClient {
   private static final Logger log = LoggerFactory.getLogger(BTraceClient.class);
   private static final String JAR_PATH_PROPERTY = "btrace.jar.path";
+  private static final Pattern PORT_UNAVAILABLE = Pattern.compile("Port \\d+ unavailable.*");
 
   @FunctionalInterface
   public interface CommandListener {
@@ -74,7 +78,12 @@ public final class BTraceClient {
     ClassLoader loader =
         (ClassLoader) constructor.newInstance(jar, "client", BTraceClient.class.getClassLoader());
     Class<?> clientClass = loader.loadClass("io.btrace.client.Client");
-    Object client = clientClass.getConstructor(int.class).newInstance(port);
+    Object client;
+    try {
+      client = clientClass.getConstructor(int.class).newInstance(port);
+    } catch (InvocationTargetException e) {
+      throw unwrap(e);
+    }
     return new BTraceClient(
         client,
         clientClass,
@@ -86,43 +95,56 @@ public final class BTraceClient {
   public byte[] compileSource(String fileName, String source, String classPath, PrintWriter errors)
       throws Exception {
     return (byte[])
-        clientClass
-            .getMethod("compileSource", String.class, String.class, String.class, PrintWriter.class)
-            .invoke(delegate, fileName, source, classPath, errors);
+        call(
+            clientClass.getMethod(
+                "compileSource", String.class, String.class, String.class, PrintWriter.class),
+            delegate,
+            fileName,
+            source,
+            classPath,
+            errors);
   }
 
   public String onelinerSource(String expression, String className) throws Exception {
     ClassLoader loader = clientClass.getClassLoader();
     Class<?> parser = loader.loadClass("io.btrace.compiler.oneliner.OnelinerParser");
-    Object ast = parser.getMethod("parse", String.class).invoke(null, expression);
+    Object ast = call(parser.getMethod("parse", String.class), null, expression);
     Class<?> validator = loader.loadClass("io.btrace.compiler.oneliner.OnelinerValidator");
     for (Method method : validator.getMethods()) {
       if (method.getName().equals("validate") && method.getParameterCount() == 2) {
-        method.invoke(null, ast, expression);
+        call(method, null, ast, expression);
         break;
       }
     }
     Class<?> generator = loader.loadClass("io.btrace.compiler.oneliner.OnelinerCodeGenerator");
     for (Method method : generator.getMethods()) {
       if (method.getName().equals("generate") && method.getParameterCount() == 2) {
-        return (String) method.invoke(null, ast, className);
+        return (String) call(method, null, ast, className);
       }
     }
     throw new IllegalStateException("BTrace oneliner generator is unavailable");
   }
 
   public void attach(String pid, String systemClassPath, String bootstrapClassPath) throws Exception {
-    clientClass
-        .getMethod("attach", String.class, String.class, String.class)
-        .invoke(delegate, pid, systemClassPath, bootstrapClassPath);
+    call(
+        clientClass.getMethod("attach", String.class, String.class, String.class),
+        delegate,
+        pid,
+        systemClassPath,
+        bootstrapClassPath);
   }
 
   public void submit(String host, String fileName, byte[] code, String[] args, CommandListener listener)
       throws Exception {
-    clientClass
-        .getMethod(
-            "submit", String.class, String.class, byte[].class, String[].class, commandListenerClass)
-        .invoke(delegate, host, fileName, code, args, listenerProxy(listener));
+    call(
+        clientClass.getMethod(
+            "submit", String.class, String.class, byte[].class, String[].class, commandListenerClass),
+        delegate,
+        host,
+        fileName,
+        code,
+        args,
+        listenerProxy(listener));
   }
 
   /**
@@ -147,36 +169,40 @@ public final class BTraceClient {
   }
 
   public void listProbes(String host, CommandListener listener) throws Exception {
-    clientClass
-        .getMethod("connectAndListProbes", String.class, commandListenerClass)
-        .invoke(delegate, host, listenerProxy(listener));
+    call(
+        clientClass.getMethod("connectAndListProbes", String.class, commandListenerClass),
+        delegate,
+        host,
+        listenerProxy(listener));
   }
 
   /** Reconnects to a detached probe and stops it; returns once the agent confirms the exit. */
   public void exitProbe(String host, String probeId) throws Exception {
-    clientClass
-        .getMethod("connectAndExitProbe", String.class, String.class)
-        .invoke(delegate, host, probeId);
+    call(
+        clientClass.getMethod("connectAndExitProbe", String.class, String.class),
+        delegate,
+        host,
+        probeId);
   }
 
   public void sendExit(int code) throws Exception {
-    clientClass.getMethod("sendExit", int.class).invoke(delegate, code);
+    call(clientClass.getMethod("sendExit", int.class), delegate, code);
   }
 
   public void sendDisconnect() throws Exception {
-    clientClass.getMethod("sendDisconnect").invoke(delegate);
+    call(clientClass.getMethod("sendDisconnect"), delegate);
   }
 
   public void sendEvent() throws Exception {
-    clientClass.getMethod("sendEvent").invoke(delegate);
+    call(clientClass.getMethod("sendEvent"), delegate);
   }
 
   public void sendEvent(String name) throws Exception {
-    clientClass.getMethod("sendEvent", String.class).invoke(delegate, name);
+    call(clientClass.getMethod("sendEvent", String.class), delegate, name);
   }
 
   public void close() throws Exception {
-    clientClass.getMethod("close").invoke(delegate);
+    call(clientClass.getMethod("close"), delegate);
   }
 
   public int commandType(Object command) throws Exception {
@@ -194,6 +220,34 @@ public final class BTraceClient {
     java.io.StringWriter output = new java.io.StringWriter();
     printableCommandClass.getMethod("print", PrintWriter.class).invoke(command, new PrintWriter(output));
     return output.toString();
+  }
+
+  private static Object call(Method method, Object target, Object... args) throws Exception {
+    try {
+      return method.invoke(target, args);
+    } catch (InvocationTargetException e) {
+      throw unwrap(e);
+    }
+  }
+
+  /**
+   * Returns the exception the client actually threw. Reflection wraps it in an exception whose
+   * message is null, and the tools report that message to the user.
+   */
+  private static Exception unwrap(InvocationTargetException e) {
+    Throwable cause = e.getCause();
+    if (cause instanceof IOException
+        && cause.getMessage() != null
+        && PORT_UNAVAILABLE.matcher(cause.getMessage()).matches()) {
+      return new IOException(
+          cause.getMessage()
+              + " Another BTrace agent or process is using it; pass a different 'port' argument.",
+          cause);
+    }
+    if (cause instanceof Exception && cause.getMessage() != null) {
+      return (Exception) cause;
+    }
+    return new IllegalStateException(String.valueOf(cause), cause);
   }
 
   private Object listenerProxy(CommandListener listener) {
