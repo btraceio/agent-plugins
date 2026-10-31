@@ -263,6 +263,31 @@ class McpServerE2ETest {
     assertTrue(server.isAlive(), "MCP server died during the session");
   }
 
+  @Test
+  @Order(13)
+  void aBusyPortIsReportedWithTheArgumentThatAvoidsIt() throws Exception {
+    // The client checks the port only for a JVM with no agent yet, so this needs a fresh target.
+    Process freshApp =
+        new ProcessBuilder(javaTool("java"), "-cp", requiredProperty("e2e.sampleClasspath"), TARGET)
+            .redirectError(new File(System.getProperty("e2e.logDir", "build/e2e"), "fresh-app.err"))
+            .start();
+    try (ServerSocket busy = new ServerSocket(0)) {
+      awaitReady(freshApp);
+      Map<String, Object> arguments =
+          args("oneliner", TARGET + "::process @return { print method }");
+      arguments.put("pid", String.valueOf(freshApp.pid()));
+      arguments.put("port", busy.getLocalPort());
+
+      Map<String, Object> result = server.callTool("deploy_oneliner", arguments, CALL);
+
+      assertTrue(isError(result), text(result));
+      assertTrue(text(result).contains("Port " + busy.getLocalPort() + " unavailable"), text(result));
+      assertTrue(text(result).contains("'port' argument"), text(result));
+    } finally {
+      freshApp.destroyForcibly();
+    }
+  }
+
   private Map<String, Object> tool(String name, Object... keyValues) throws Exception {
     Map<String, Object> arguments = args(keyValues);
     arguments.put("pid", pid);

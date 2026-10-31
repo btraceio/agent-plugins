@@ -7,43 +7,42 @@ tools:
   - Glob
   - Write
   - Bash(find *)
-  - mcp__jfr-mcp__jfr_open
-  - mcp__jfr-mcp__jfr_close
-  - mcp__jfr-mcp__jfr_query
-  - mcp__jfr-mcp__jfr_list_types
-  - mcp__jfr-mcp__jfr_help
-  - mcp__jfr-mcp__jfr_summary
-  - mcp__jfr-mcp__jfr_flamegraph
-  - mcp__jfr-mcp__jfr_callgraph
-  - mcp__jfr-mcp__jfr_hotmethods
-  - mcp__jfr-mcp__jfr_exceptions
-  - mcp__jfr-mcp__jfr_use
-  - mcp__jfr-mcp__jfr_tsa
-  - mcp__jfr-mcp__jfr_diagnose
-  - mcp__jfr-mcp__jfr_stackprofile
-  - mcp__jfr-mcp__pprof_open
-  - mcp__jfr-mcp__pprof_close
-  - mcp__jfr-mcp__pprof_query
-  - mcp__jfr-mcp__pprof_summary
-  - mcp__jfr-mcp__pprof_flamegraph
-  - mcp__jfr-mcp__pprof_hotmethods
-  - mcp__jfr-mcp__pprof_use
-  - mcp__jfr-mcp__pprof_tsa
-  - mcp__jfr-mcp__pprof_stackprofile
-  - mcp__jfr-mcp__pprof_help
-  - mcp__jfr-mcp__otlp_open
-  - mcp__jfr-mcp__otlp_close
-  - mcp__jfr-mcp__otlp_query
-  - mcp__jfr-mcp__otlp_summary
-  - mcp__jfr-mcp__otlp_flamegraph
-  - mcp__jfr-mcp__otlp_use
-  - mcp__jfr-mcp__otlp_help
-  - mcp__jfr-mcp__hdump_open
-  - mcp__jfr-mcp__hdump_close
-  - mcp__jfr-mcp__hdump_query
-  - mcp__jfr-mcp__hdump_summary
-  - mcp__jfr-mcp__hdump_report
-  - mcp__jfr-mcp__hdump_help
+  - mcp__plugin_jfr-analyzer_jfr-mcp__jfr_open
+  - mcp__plugin_jfr-analyzer_jfr-mcp__jfr_close
+  - mcp__plugin_jfr-analyzer_jfr-mcp__jfr_query
+  - mcp__plugin_jfr-analyzer_jfr-mcp__jfr_list_types
+  - mcp__plugin_jfr-analyzer_jfr-mcp__jfr_help
+  - mcp__plugin_jfr-analyzer_jfr-mcp__jfr_summary
+  - mcp__plugin_jfr-analyzer_jfr-mcp__jfr_flamegraph
+  - mcp__plugin_jfr-analyzer_jfr-mcp__jfr_callgraph
+  - mcp__plugin_jfr-analyzer_jfr-mcp__jfr_hotmethods
+  - mcp__plugin_jfr-analyzer_jfr-mcp__jfr_exceptions
+  - mcp__plugin_jfr-analyzer_jfr-mcp__jfr_use
+  - mcp__plugin_jfr-analyzer_jfr-mcp__jfr_tsa
+  - mcp__plugin_jfr-analyzer_jfr-mcp__jfr_diagnose
+  - mcp__plugin_jfr-analyzer_jfr-mcp__jfr_stackprofile
+  - mcp__plugin_jfr-analyzer_jfr-mcp__pprof_open
+  - mcp__plugin_jfr-analyzer_jfr-mcp__pprof_close
+  - mcp__plugin_jfr-analyzer_jfr-mcp__pprof_query
+  - mcp__plugin_jfr-analyzer_jfr-mcp__pprof_summary
+  - mcp__plugin_jfr-analyzer_jfr-mcp__pprof_flamegraph
+  - mcp__plugin_jfr-analyzer_jfr-mcp__pprof_hotmethods
+  - mcp__plugin_jfr-analyzer_jfr-mcp__pprof_use
+  - mcp__plugin_jfr-analyzer_jfr-mcp__pprof_tsa
+  - mcp__plugin_jfr-analyzer_jfr-mcp__pprof_help
+  - mcp__plugin_jfr-analyzer_jfr-mcp__otlp_open
+  - mcp__plugin_jfr-analyzer_jfr-mcp__otlp_close
+  - mcp__plugin_jfr-analyzer_jfr-mcp__otlp_query
+  - mcp__plugin_jfr-analyzer_jfr-mcp__otlp_summary
+  - mcp__plugin_jfr-analyzer_jfr-mcp__otlp_flamegraph
+  - mcp__plugin_jfr-analyzer_jfr-mcp__otlp_use
+  - mcp__plugin_jfr-analyzer_jfr-mcp__otlp_help
+  - mcp__plugin_jfr-analyzer_jfr-mcp__hdump_open
+  - mcp__plugin_jfr-analyzer_jfr-mcp__hdump_close
+  - mcp__plugin_jfr-analyzer_jfr-mcp__hdump_query
+  - mcp__plugin_jfr-analyzer_jfr-mcp__hdump_summary
+  - mcp__plugin_jfr-analyzer_jfr-mcp__hdump_report
+  - mcp__plugin_jfr-analyzer_jfr-mcp__hdump_help
 ---
 
 You are a performance engineering expert specializing in JVM, Go, and polyglot applications.
@@ -104,7 +103,7 @@ samples | groupBy(stackTrace/0/name, sum(alloc_objects))  # stackTrace/0/name = 
 
 ## Workflow for a new file (standalone mode)
 
-1. Verify Jafar MCP is running — call `mcp__jfr-mcp__jfr_help` (or equivalent for the format).
+1. Verify Jafar MCP is running — call `mcp__plugin_jfr-analyzer_jfr-mcp__jfr_help` (or equivalent for the format).
    If it fails, output: "Jafar MCP is not running. Start it with: jbang jafar-mcp@btraceio"
 2. Open the file with `*_open`.
 3. Run `*_summary` to understand what's in the recording.

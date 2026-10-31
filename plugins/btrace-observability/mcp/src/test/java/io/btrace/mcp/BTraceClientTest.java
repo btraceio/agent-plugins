@@ -3,10 +3,12 @@ package io.btrace.mcp;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.btrace.client.Client;
 import io.btrace.core.comm.Command;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.concurrent.CountDownLatch;
@@ -68,6 +70,25 @@ class BTraceClientTest {
     assertTrue(delegate.disconnected);
     assertEquals(7, delegate.exitCode);
     assertTrue(delegate.closed);
+  }
+
+  @Test
+  void aBusyPortNamesThePortAndTheArgumentThatAvoidsIt() throws Exception {
+    BTraceClient client = BTraceClient.create(2020);
+
+    IOException e = assertThrows(IOException.class, () -> client.attach("port-busy", null, "."));
+
+    assertTrue(e.getMessage().startsWith("Port 2020 unavailable. Another"), e.getMessage());
+    assertTrue(e.getMessage().contains("'port' argument"), e.getMessage());
+  }
+
+  @Test
+  void aFailureWithoutAMessageStillDescribesItself() throws Exception {
+    BTraceClient client = BTraceClient.create(2020);
+
+    Exception e = assertThrows(Exception.class, () -> client.attach("no-message", null, "."));
+
+    assertEquals("java.io.IOException", e.getMessage());
   }
 
   @Test

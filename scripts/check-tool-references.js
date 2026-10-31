@@ -26,10 +26,12 @@ const root = path.resolve(__dirname, '..');
 // reference; anything else in the prose is not our business.
 const TOOL_TOKEN = /\b(?:jfr|hdump|pprof|otlp)_[a-z_]+\b/g;
 // Names that look like tools but are not: the field names of the "shared evidence record" in the
-// jfr-analyzer interop skill. They are data the agent writes, not calls it makes.
-const NOT_TOOLS = new Set(['jfr_session', 'jfr_window', 'jfr_evidence']);
-// Agents declare their allowlist as `mcp__<server>__<tool>`.
-const MCP_QUALIFIED = /\bmcp__[a-z0-9_]+__([a-z0-9_]+)\b/g;
+// jfr-analyzer interop skill and of the eval manifest. They are data the agent writes, not calls it
+// makes.
+const NOT_TOOLS = new Set(['jfr_session', 'jfr_window', 'jfr_evidence', 'jfr_event_types']);
+// Agents declare their allowlist as `mcp__plugin_<plugin>_<server>__<tool>`; plugin and server names
+// may contain hyphens.
+const MCP_QUALIFIED = /\bmcp__[a-z0-9_-]+__([a-z0-9_]+)\b/g;
 
 const HANDSHAKE = [
   { jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2024-11-05', capabilities: {}, clientInfo: { name: 'tool-drift-check', version: '1' } } },
@@ -67,9 +69,8 @@ function referencedTools(plugins) {
     const base = path.join(root, 'plugins', plugin);
     const skills = path.join(base, 'skills');
     if (fs.existsSync(skills)) {
-      for (const d of fs.readdirSync(skills, { withFileTypes: true })) {
-        const file = path.join(skills, d.name, 'SKILL.md');
-        if (d.isDirectory() && fs.existsSync(file)) files.push(file);
+      for (const f of fs.readdirSync(skills, { recursive: true })) {
+        if (path.basename(f) === 'SKILL.md') files.push(path.join(skills, f));
       }
     }
     const agents = path.join(base, 'agents');

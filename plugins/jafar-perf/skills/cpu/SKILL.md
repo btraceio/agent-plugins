@@ -1,7 +1,7 @@
 ---
 name: cpu
 description: Find where CPU time goes in a JFR recording, pprof profile or OTLP profile, and attribute it to call paths and threads. Use when triage shows high execution-sample counts, when the user asks "why is the CPU pegged", "what is the hot method", "where is the time going", or asks for a flamegraph or profile of CPU usage.
-allowed-tools: mcp__jafar__jfr_hotmethods mcp__jafar__jfr_stackprofile mcp__jafar__jfr_flamegraph mcp__jafar__jfr_callgraph mcp__jafar__jfr_query mcp__jafar__jfr_list_types mcp__jafar__pprof_hotmethods mcp__jafar__pprof_flamegraph mcp__jafar__otlp_flamegraph
+allowed-tools: mcp__plugin_jafar-perf_jafar__jfr_hotmethods mcp__plugin_jafar-perf_jafar__jfr_stackprofile mcp__plugin_jafar-perf_jafar__jfr_flamegraph mcp__plugin_jafar-perf_jafar__jfr_callgraph mcp__plugin_jafar-perf_jafar__jfr_query mcp__plugin_jafar-perf_jafar__jfr_list_types mcp__plugin_jafar-perf_jafar__pprof_hotmethods mcp__plugin_jafar-perf_jafar__pprof_flamegraph mcp__plugin_jafar-perf_jafar__otlp_flamegraph
 ---
 
 # CPU analysis

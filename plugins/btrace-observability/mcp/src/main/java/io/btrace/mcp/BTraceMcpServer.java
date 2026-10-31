@@ -1,3 +1,4 @@
+//REPOS mavencentral,central-snapshots=https://central.sonatype.com/repository/maven-snapshots/
 //DEPS io.btrace:btrace:3.0.0-SNAPSHOT
 //DEPS org.slf4j:slf4j-api:2.0.18
 //DEPS org.slf4j:slf4j-simple:2.0.18

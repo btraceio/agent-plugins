@@ -10,13 +10,15 @@
     "agent-skills"
   ],
   "pi": {
+    "extensions": [
+      "./extensions/mcp-servers.ts"
+    ],
     "skills": [
       "./plugins/btrace-development/skills",
       "./plugins/btrace-observability/skills",
       "./plugins/jfr-analyzer/skills",
       "./plugins/jafar-perf/skills",
       "./plugins/perf-engineer/skills"
-    ],
-    "mcp": "./plugins/jafar-perf/.mcp.json"
+    ]
   }
 }

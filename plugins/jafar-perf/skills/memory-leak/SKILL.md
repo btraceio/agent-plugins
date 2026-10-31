@@ -1,7 +1,7 @@
 ---
 name: memory-leak
 description: Hunt memory leaks and wasted heap in a Java heap dump (HPROF) — retained sizes, dominator tree, GC root paths, known leak patterns, duplicate strings, collection waste, and correlating retained objects back to their JFR allocation sites. Use for OutOfMemoryError, heap that never comes back after GC, container OOM kills, or any .hprof file.
-allowed-tools: mcp__jafar__hdump_open mcp__jafar__hdump_summary mcp__jafar__hdump_report mcp__jafar__hdump_query mcp__jafar__hdump_help mcp__jafar__hdump_close
+allowed-tools: mcp__plugin_jafar-perf_jafar__hdump_open mcp__plugin_jafar-perf_jafar__hdump_summary mcp__plugin_jafar-perf_jafar__hdump_report mcp__plugin_jafar-perf_jafar__hdump_query mcp__plugin_jafar-perf_jafar__hdump_help mcp__plugin_jafar-perf_jafar__hdump_close
 ---
 
 # Memory leak analysis

@@ -34,7 +34,14 @@ public class Client {
     return (fileName + ':' + source + ':' + classPath).getBytes();
   }
 
-  public void attach(String pid, String systemClassPath, String bootstrapClassPath) {
+  public void attach(String pid, String systemClassPath, String bootstrapClassPath)
+      throws java.io.IOException {
+    if (pid.equals("port-busy")) {
+      throw new java.io.IOException("Port " + port + " unavailable.");
+    }
+    if (pid.equals("no-message")) {
+      throw new java.io.IOException();
+    }
     attachedPid = pid;
   }
 

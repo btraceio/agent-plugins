@@ -40,7 +40,7 @@ Mark preflight in_progress.
 
 ▶ Checking Jafar MCP...
 
-Call mcp__jfr-mcp__jfr_help with no arguments.
+Call jfr_help with no arguments.
 
 If the call errors or times out, output:
 
@@ -65,10 +65,10 @@ Inspect the FILE extension and set these variables:
 
 | Extension       | FORMAT | OPEN_TOOL                  | SUMMARY_TOOL                 | USE_TOOL              | TSA_TOOL              | STACK_TOOL                     |
 |-----------------|--------|----------------------------|------------------------------|-----------------------|-----------------------|--------------------------------|
-| .jfr            | jfr    | mcp__jfr-mcp__jfr_open       | mcp__jfr-mcp__jfr_summary      | mcp__jfr-mcp__jfr_use   | mcp__jfr-mcp__jfr_tsa   | mcp__jfr-mcp__jfr_stackprofile   |
-| .pb.gz or .pprof| pprof  | mcp__jfr-mcp__pprof_open     | mcp__jfr-mcp__pprof_summary    | mcp__jfr-mcp__pprof_use | mcp__jfr-mcp__pprof_tsa | mcp__jfr-mcp__pprof_stackprofile |
-| .otlp           | otlp   | mcp__jfr-mcp__otlp_open      | mcp__jfr-mcp__otlp_summary     | mcp__jfr-mcp__otlp_use  | (none)                | mcp__jfr-mcp__otlp_stackprofile  |
-| .hprof          | hprof  | mcp__jfr-mcp__hdump_open     | mcp__jfr-mcp__hdump_summary    | (none)                | (none)                | (none)                         |
+| .jfr            | jfr    | jfr_open       | jfr_summary      | jfr_use   | jfr_tsa   | jfr_stackprofile   |
+| .pb.gz or .pprof| pprof  | pprof_open     | pprof_summary    | pprof_use | pprof_tsa | (none)             |
+| .otlp           | otlp   | otlp_open      | otlp_summary     | otlp_use  | (none)                | (none)             |
+| .hprof          | hprof  | hdump_open     | hdump_summary    | (none)                | (none)                | (none)                         |
 
 If extension is unrecognized:
   Output: "❌ Unrecognized file extension. Supported: .jfr .pb.gz .pprof .otlp .hprof"
@@ -176,7 +176,7 @@ Mark use-report in_progress.
 For JFR, pprof, OTLP formats: call USE_TOOL with sessionId, includeInsights=true,
 resources=["cpu","memory","threads","io"].
 
-For HPROF: call mcp__jfr-mcp__hdump_summary with sessionId to extract available metrics
+For HPROF: call hdump_summary with sessionId to extract available metrics
 (total objects, total retained bytes). Store as a minimal USE-equivalent structure.
 
 Write raw result to SESSION_DIR/use-report.json using the Write tool.
@@ -203,7 +203,7 @@ Mark tsa-report completed.
 
 Mark stackgraph in_progress.
 
-For JFR, pprof, OTLP formats: call STACK_TOOL with sessionId.
+For JFR: call STACK_TOOL with sessionId.
 
 From the stackprofile result, look for time windows where sample density is more than 2×
 the median bucket density — these are spike windows. Record each as:
@@ -212,7 +212,7 @@ the median bucket density — these are spike windows. Record each as:
 Write result to SESSION_DIR/stackgraph.json using the Write tool. Include:
   { "raw": <full stackprofile result>, "spikeWindows": [<spike objects or empty array>] }
 
-For HPROF: skip. Write { "raw": null, "spikeWindows": [] } to SESSION_DIR/stackgraph.json.
+For pprof, OTLP and HPROF, which have no STACK_TOOL: skip. Write { "raw": null, "spikeWindows": [] } to SESSION_DIR/stackgraph.json.
 
 ▶ Temporal analysis complete
 
@@ -226,7 +226,7 @@ Skip this step entirely for pprof, OTLP, and HPROF. For those formats, write
 { "skipped": true, "reason": "not JFR format" } to SESSION_DIR/jvm-gc-lanes.json and mark
 jvm-gc-lanes completed.
 
-For JFR only — run each query using mcp__jfr-mcp__jfr_query with sessionId:
+For JFR only — run each query using jfr_query with sessionId:
 
 **GC pauses:**
   Query 1: events/jdk.GCPhasePause | stats(duration)

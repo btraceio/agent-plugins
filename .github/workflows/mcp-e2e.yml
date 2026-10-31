@@ -78,6 +78,19 @@ jobs:
         working-directory: plugins/btrace-observability/mcp
         run: ./gradlew --no-daemon e2eTest
 
+      # The e2e tests use BTRACE_JAR, so they cannot see a dependency users fail to resolve. This starts
+      # the server the way the plugin manifests do, with nothing cached.
+      - name: Start the MCP server from a clean JBang install
+        run: |
+          curl -Ls https://sh.jbang.dev | bash -s - version
+          export JBANG_DIR="$(mktemp -d)" JBANG_REPO="$(mktemp -d)"
+          printf '%s\n' \
+            '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"ci","version":"1"}}}' \
+            '{"jsonrpc":"2.0","method":"notifications/initialized"}' \
+            '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' |
+            timeout 300 "$HOME/.jbang/bin/jbang" plugins/btrace-observability/mcp/src/main/java/io/btrace/mcp/BTraceMcpServer.java |
+            grep '"id":2' | grep -q deploy_oneliner
+
       - name: Upload e2e logs and reports
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7

@@ -1,7 +1,7 @@
 ---
 name: compare
 description: Decide whether a candidate JFR recording regressed against a baseline, and attribute the change to a frame or a metric. Use for before/after checks, "is this build slower", bisecting a performance regression, verifying that a fix actually helped, or any question involving two recordings of the same workload.
-allowed-tools: mcp__jafar__jfr_open mcp__jafar__jfr_compare mcp__jafar__jfr_hotmethods mcp__jafar__jfr_stackprofile mcp__jafar__jfr_query mcp__jafar__jfr_summary
+allowed-tools: mcp__plugin_jafar-perf_jafar__jfr_open mcp__plugin_jafar-perf_jafar__jfr_compare mcp__plugin_jafar-perf_jafar__jfr_hotmethods mcp__plugin_jafar-perf_jafar__jfr_stackprofile mcp__plugin_jafar-perf_jafar__jfr_query mcp__plugin_jafar-perf_jafar__jfr_summary
 ---
 
 # Comparing two recordings

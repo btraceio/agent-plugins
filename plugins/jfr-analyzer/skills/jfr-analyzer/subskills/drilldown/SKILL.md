@@ -160,12 +160,12 @@ If source root is available, for each hot method identified:
 
 ### gc-pressure (JFR only)
 
-Run these queries using mcp__jfr-mcp__jfr_query:
+Run these queries using jfr_query:
   events/jdk.GCPhasePause | groupBy(name, agg=sum, value=duration) | top(5)
   events/jdk.GCPhasePause | quantiles(0.5, 0.95, 0.99, path=duration)
   events/jdk.GarbageCollection | stats(duration)
 
-Also run mcp__jfr-mcp__jfr_hotmethods (to see if GC threads appear in top methods).
+Also run jfr_hotmethods (to see if GC threads appear in top methods).
 
 Identify: dominant GC phase (e.g. G1 Major, G1 Young, ZGC Concurrent), pause p50/p95/p99 in
 milliseconds, whether GC threads appear in hotmethods, and which GC algorithm is in use.
@@ -182,7 +182,7 @@ means try the next option):
             (older JDKs)
 
 Then run:
-  mcp__jfr-mcp__jfr_stackprofile (to find allocation call stacks)
+  jfr_stackprofile (to find allocation call stacks)
 
 Note which event was used in evidence[0].label. For sampled allocation events, state whether the
 weight represents estimated bytes or sample count. Identify: top allocating class+method,
@@ -195,9 +195,9 @@ Run: {fmt}_tsa with correlateBlocking=true, topThreads=20
 
 Note: HPROF format has no TSA tool — skip the {fmt}_tsa call for hdump format. Run only the hdump-specific contention analysis if available, or report that thread state analysis is not supported for heap dumps.
 
-Note: OTLP format has no TSA tool — skip the {fmt}_tsa call for otlp format. Rely on stackprofile-based thread analysis: run otlp_stackprofile and identify methods that dominate samples during contention windows.
+Note: OTLP format has no TSA tool — skip the {fmt}_tsa call for otlp format. Rely on otlp_flamegraph and otlp_query to identify methods that dominate samples.
 
-For JFR additionally run these mcp__jfr-mcp__jfr_query calls:
+For JFR additionally run these jfr_query calls:
   events/jdk.JavaMonitorEnter | groupBy(monitorClass, agg=count) | top(10)
   events/jdk.JavaMonitorEnter | stats(duration)
   events/jdk.JavaMonitorWait | groupBy(monitorClass, agg=count) | top(10)
@@ -215,9 +215,9 @@ If VirtualThreadPinned count > 0, add a dedicated evidence item:
 
 Note: HPROF (heap dump) format has no CPU sample data — this area should not be selected for HPROF sessions.
 
-Note: OTLP format does not have otlp_hotmethods or otlp_callgraph. For OTLP, skip {fmt}_hotmethods and {fmt}_callgraph. Instead, derive hot methods using: otlp_query groupBy(stackTrace/0/name, sum(cpu)) | top(20). Then run otlp_flamegraph direction=top-down as the only flamegraph step.
+Note: OTLP format has no hot-methods or call-graph tool. For OTLP, skip {fmt}_hotmethods and {fmt}_callgraph. Instead, derive hot methods using: otlp_query groupBy(stackTrace/0/name, sum(cpu)) | top(20). Then run otlp_flamegraph direction=top-down as the only flamegraph step.
 
-Note: pprof format does not have pprof_callgraph — skip the {fmt}_callgraph step for pprof format.
+Note: pprof format has no call-graph tool — skip the {fmt}_callgraph step for pprof format.
 
 Run: {fmt}_hotmethods   (top 20 by default)  [skip for OTLP — use otlp_query instead, see Note above]
 Run: {fmt}_flamegraph   direction=top-down
@@ -228,7 +228,7 @@ split. For the #1 hotmethod, estimate what percentage of total CPU it represents
 
 ### safepoints (JFR only)
 
-Run these mcp__jfr-mcp__jfr_query calls:
+Run these jfr_query calls:
   events/jdk.SafepointBegin | stats(duration)
   events/jdk.SafepointBegin | quantiles(0.5, 0.95, 0.99, path=duration)
   events/jdk.SafepointBegin | groupBy(cause, agg=sum, value=duration) | top(5)
@@ -238,7 +238,7 @@ p95/p99 duration in milliseconds, and total safepoint time as a percentage of re
 
 ### virtual-thread-pinning (JFR only)
 
-Run these mcp__jfr-mcp__jfr_query calls:
+Run these jfr_query calls:
   events/jdk.VirtualThreadPinned | count()
   events/jdk.VirtualThreadPinned | stats(duration)
 
@@ -250,10 +250,10 @@ stack (the synchronized block or native method causing pinning).
 
 ### heap-memory (HPROF only)
 
-Run: mcp__jfr-mcp__hdump_report   (full heap analysis — this is the primary analysis call)
+Run: hdump_report   (full heap analysis — this is the primary analysis call)
 
 Then run targeted hdump_query calls to identify top retained objects. Refer to
-mcp__jfr-mcp__hdump_help for available HdumpPath query syntax.
+hdump_help for available HdumpPath query syntax.
 
 Identify: largest retained object graphs by size, potential memory leaks (many instances with
 large retained size), and GC roots holding large graphs.
