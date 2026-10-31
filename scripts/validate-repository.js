@@ -36,11 +36,13 @@ for (const resource of pi.pi?.skills || []) if (!exists(resource.replace(/^\.\//
 if (pi.pi?.mcp && !exists(pi.pi.mcp.replace(/^\.\//, ''))) errors.push(`pi: missing MCP config ${pi.pi.mcp}`);
 
 const skillFiles = [];
+const javaFiles = [];
 function walk(dir) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const file = path.join(dir, entry.name);
     if (entry.isDirectory()) walk(file);
     else if (entry.name === 'SKILL.md') skillFiles.push(file);
+    else if (entry.name.endsWith('.java')) javaFiles.push(file);
   }
 }
 walk(path.join(root, 'plugins'));
@@ -48,6 +50,12 @@ for (const file of skillFiles) {
   const body = fs.readFileSync(file, 'utf8');
   // name and description first, then any other single-line fields (e.g. allowed-tools) before the closing rule.
   if (!/^---\nname: [a-z0-9-]+\ndescription: .+\n(?:[a-z][a-z-]*: .+\n)*---/m.test(body)) errors.push(`${path.relative(root, file)}: invalid front matter`);
+}
+
+// JBang searches only Maven Central unless told otherwise, so a snapshot dependency needs a repository.
+for (const file of javaFiles) {
+  const body = fs.readFileSync(file, 'utf8');
+  if (/^\/\/DEPS .*-SNAPSHOT/m.test(body) && !/^\/\/REPOS .*snapshots/m.test(body)) errors.push(`${path.relative(root, file)}: snapshot //DEPS without a snapshot //REPOS`);
 }
 
 if (errors.length) {
