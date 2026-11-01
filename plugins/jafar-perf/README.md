@@ -15,13 +15,12 @@ This plugin is that layer.
 ```
 
 The plugin bundles `.mcp.json`, so installing it also registers the `jafar` MCP server
-(`jbang jfr-mcp@btraceio --stdio --attach`). [JBang](https://www.jbang.dev) must be on your PATH;
+(`jbang --java 26+ io.btrace:jfr-mcp:0.29.0 --stdio --attach`). [JBang](https://www.jbang.dev) must be on your PATH;
 it fetches the server on first use. No separate `claude mcp add` is needed.
 
 `--attach` makes every session share one daemon, started on demand, instead of each starting its
 own JVM, so a new session answers in a fraction of a second and agents working in parallel get
-their own sessions on the same server. It needs a `jfr-mcp` release that has the flag; an older
-one ignores it and runs a private server, which still works. See the
+their own sessions on the same server. See the
 [daemon documentation](https://github.com/btraceio/jafar/blob/main/doc/mcp/Daemon.md#one-shared-daemon-for-many-stdio-clients---attach).
 
 ## What is in it

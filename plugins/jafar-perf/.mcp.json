@@ -4,7 +4,9 @@
       "type": "stdio",
       "command": "jbang",
       "args": [
-        "jfr-mcp@btraceio",
+        "--java",
+        "26+",
+        "io.btrace:jfr-mcp:0.29.0",
         "--stdio",
         "--attach"
       ]
