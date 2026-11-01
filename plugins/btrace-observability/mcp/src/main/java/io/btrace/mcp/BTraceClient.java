@@ -26,6 +26,7 @@ import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +41,8 @@ import org.slf4j.LoggerFactory;
 public final class BTraceClient {
   private static final Logger log = LoggerFactory.getLogger(BTraceClient.class);
   private static final String JAR_PATH_PROPERTY = "btrace.jar.path";
-  private static final Pattern PORT_UNAVAILABLE = Pattern.compile("Port \\d+ unavailable.*");
+  private static final Pattern PORT_UNAVAILABLE =
+      Pattern.compile("Port (\\d+) (?:unavailable|is in use by another process).*");
 
   @FunctionalInterface
   public interface CommandListener {
@@ -236,13 +238,16 @@ public final class BTraceClient {
    */
   private static Exception unwrap(InvocationTargetException e) {
     Throwable cause = e.getCause();
-    if (cause instanceof IOException
-        && cause.getMessage() != null
-        && PORT_UNAVAILABLE.matcher(cause.getMessage()).matches()) {
-      return new IOException(
-          cause.getMessage()
-              + " Another BTrace agent or process is using it; pass a different 'port' argument.",
-          cause);
+    if (cause instanceof IOException && cause.getMessage() != null) {
+      Matcher busyPort = PORT_UNAVAILABLE.matcher(cause.getMessage());
+      if (busyPort.matches()) {
+        return new IOException(
+            "Port "
+                + busyPort.group(1)
+                + " unavailable. Another BTrace agent or process is using it; pass a different"
+                + " 'port' argument.",
+            cause);
+      }
     }
     if (cause instanceof Exception && cause.getMessage() != null) {
       return (Exception) cause;

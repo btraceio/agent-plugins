@@ -104,7 +104,7 @@ samples | groupBy(stackTrace/0/name, sum(alloc_objects))  # stackTrace/0/name = 
 ## Workflow for a new file (standalone mode)
 
 1. Verify Jafar MCP is running — call `mcp__plugin_jfr-analyzer_jfr-mcp__jfr_help` (or equivalent for the format).
-   If it fails, output: "Jafar MCP is not running. Start it with: jbang jafar-mcp@btraceio"
+   If it fails, output: "Jafar MCP is not running. Start it with: jbang jfr-mcp@btraceio --stdio --attach"
 2. Open the file with `*_open`.
 3. Run `*_summary` to understand what's in the recording.
 4. Run `*_use` to identify which resource is the primary bottleneck.

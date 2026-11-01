@@ -22,6 +22,8 @@ public class Client {
   public boolean closed;
   public String submittedFileName;
   public String exitedProbe;
+  /** Counts down once the fake has delivered {@link #laterOutput} on the probe thread. */
+  public final CountDownLatch laterOutputSent = new CountDownLatch(1);
   private final CountDownLatch closeLatch = new CountDownLatch(1);
   private CommandListener listener;
 
@@ -39,6 +41,13 @@ public class Client {
     if (pid.equals("port-busy")) {
       throw new java.io.IOException("Port " + port + " unavailable.");
     }
+    if (pid.equals("port-in-use")) {
+      throw new java.io.IOException(
+          "Port "
+              + port
+              + " is in use by another process (often another BTrace agent); choose a free"
+              + " agent port with -p <port>.");
+    }
     if (pid.equals("no-message")) {
       throw new java.io.IOException();
     }
@@ -53,6 +62,7 @@ public class Client {
     for (String line : laterOutput) {
       listener.onCommand(new FakePrintableCommand(Command.MESSAGE, line));
     }
+    laterOutputSent.countDown();
     // Like the real client, keep running the probe command loop until the client is closed.
     closeLatch.await();
   }

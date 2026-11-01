@@ -13,15 +13,22 @@ on:
     paths:
       - 'plugins/btrace-observability/mcp/**'
       - '.github/workflows/mcp-e2e.yml'
+  # The daily run tests BTrace develop, so upstream changes surface here instead of on unrelated PRs.
+  schedule:
+    - cron: '17 5 * * *'
   workflow_dispatch:
     inputs:
       btrace-ref:
-        description: 'BTrace branch, tag or SHA to build (default: the repository default branch)'
+        description: 'BTrace branch, tag or SHA to build (default: the pinned commit)'
         required: false
         default: ''
 
 permissions:
   contents: read
+
+# Move this pin once the daily run passes on a newer BTrace commit.
+env:
+  BTRACE_PIN: 79062f807c14bcb55edc214bbd7ac574f7aadb5b
 
 concurrency:
   group: mcp-e2e-${{ github.ref }}
@@ -53,7 +60,7 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
         with:
           repository: btraceio/btrace
-          ref: ${{ inputs.btrace-ref }}
+          ref: ${{ inputs.btrace-ref || (github.event_name == 'schedule' && 'develop') || env.BTRACE_PIN }}
           path: btrace
 
       - name: Set up Gradle

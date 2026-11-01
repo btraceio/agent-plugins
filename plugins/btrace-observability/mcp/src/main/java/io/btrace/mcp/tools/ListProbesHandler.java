@@ -95,7 +95,13 @@ public final class ListProbesHandler {
         return toolResult("Timed out waiting for probe list from PID " + pid, true);
       }
 
-      String resultText = "Active probes on PID " + pid + ":\n" + output.toString();
+      String resultText = "Detached probes on PID " + pid + ":\n" + output.toString();
+      if (ClientManager.getExistingClient(pid, port) != null) {
+        resultText +=
+            "\nThis server also has a probe attached on port "
+                + port
+                + "; it is not in this list. Stop it with exit_probe.";
+      }
       return toolResult(resultText, false);
     } catch (Exception e) {
       log.error("Failed to list probes", e);

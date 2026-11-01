@@ -47,7 +47,7 @@ If the call errors or times out, output:
   ❌ Jafar MCP is not running.
 
      Start it with:
-       jbang jafar-mcp@btraceio
+       jbang jfr-mcp@btraceio --stdio --attach
 
      Then re-run /jfr-analyzer.
 

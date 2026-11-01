@@ -31,6 +31,10 @@ btrace -n 'com.example.orders.OrderRepository::find* @entry { count }' <PID>
 and regex can be valuable for discovery, but add a duration/argument filter or short observation
 window before using them on a busy service. Treat `args`, `return`, and `stack` as sensitive output.
 
+The `stack` action leaves out the probed method and starts at its caller, so print `method` alongside
+it and do not read the top frame as the failing method. A oneliner cannot print the exception type;
+use the Java probe in `btrace-failure-analysis` for that.
+
 Supported locations are `@entry`, `@return`, and `@error`. Common actions are `print`, `count`,
 `time`, and `stack`. Use a full Java probe once the investigation needs a timer, aggregation,
 multiple locations, or maintained/reviewable diagnostic code.

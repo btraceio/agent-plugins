@@ -1,6 +1,6 @@
 ---
 name: btrace-runtime-access
-description: Use when BTrace must reach a Java process through SSH, Docker, Kubernetes, a sidecar, a bastion, or another cloud-runtime boundary.
+description: Use when a JVM to observe or attach to runs behind SSH, a VM, a bastion, Docker, Kubernetes, a pod, a sidecar, or another runtime boundary, including how to attach safely in production.
 ---
 
 # Runtime Access
