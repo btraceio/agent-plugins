@@ -41,6 +41,13 @@ public class Client {
     if (pid.equals("port-busy")) {
       throw new java.io.IOException("Port " + port + " unavailable.");
     }
+    if (pid.equals("port-in-use")) {
+      throw new java.io.IOException(
+          "Port "
+              + port
+              + " is in use by another process (often another BTrace agent); choose a free"
+              + " agent port with -p <port>.");
+    }
     if (pid.equals("no-message")) {
       throw new java.io.IOException();
     }
