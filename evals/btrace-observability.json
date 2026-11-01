@@ -257,8 +257,8 @@
     ],
     "mustMention": [
       "ssh",
-      "same operating-system user",
-      "cleanup"
+      "same OS user",
+      "detach"
     ],
     "mustAvoid": [
       "grantAll=true"
