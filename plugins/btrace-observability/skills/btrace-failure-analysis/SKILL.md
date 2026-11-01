@@ -8,6 +8,9 @@ description: Use when a Java endpoint, service, consumer, or background job fail
 Observe errors at the highest useful application boundary first, then move inward only if the
 exception lacks actionable context. Do not use a JVM-wide error probe by default.
 
+Deploy the Java probe below, not a oneliner. A oneliner cannot print the exception type, and its
+`stack` action leaves out the method that failed.
+
 ```java
 import static io.btrace.core.BTraceUtils.*;
 import io.btrace.core.annotations.*;
