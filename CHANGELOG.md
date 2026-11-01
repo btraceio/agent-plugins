@@ -8,3 +8,4 @@
 - `btrace-legacy-libs-migration` skill for moving retired `libs`/profile packaging into an extension.
 - Moved `btrace-extensions-and-permissions` into `btrace-development`; extension authoring is build-time work, not incident diagnosis.
 - `btrace-extension-authoring` skill for designing a new extension against a target library.
+- `jafar-perf` `compare` skill covers the `jfr_compare` significance rules and thin-data results that follow jafar `v0.29.0`.
