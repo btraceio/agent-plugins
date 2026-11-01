@@ -33,6 +33,8 @@ reads elsewhere, have the probe export counters (`@Export` fields, read with
 - The MCP server uses the local JVM Attach API; it cannot attach across SSH, Docker, or Kubernetes
   boundaries. For those cases, first use `btrace-runtime-access` to place the client/server in the
   target environment.
+- Deploy one probe per JVM at a time: a deploy is refused while an earlier probe still runs there,
+  so call `exit_probe` first.
 - Treat deployment and cleanup as one operation: record the target PID and call `exit_probe` after
   the observation window. Prefer `exit_probe` over `detach_probe`; a detached probe keeps running
   and can afterwards only be found with `list_probes` and stopped with `stop_detached_probe`.

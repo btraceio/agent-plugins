@@ -216,6 +216,12 @@ class McpServerE2ETest {
     assertSuccess(tool("deploy_script", "script", exitProbeScript()));
     awaitCounter(EXIT_PROBE, "calls", calls -> calls > 0);
 
+    // A second deploy would leave this probe running where exit_probe cannot reach it.
+    Map<String, Object> second =
+        tool("deploy_oneliner", "oneliner", TARGET + "::process @return { print method }");
+    assertTrue(isError(second), "second deploy should be refused:\n" + text(second));
+    assertTrue(text(second).contains("already running on PID " + pid), text(second));
+
     assertSuccess(tool("exit_probe"));
     // Give in-flight handler invocations time to drain, then require the counter to stay frozen.
     Thread.sleep(1_000);

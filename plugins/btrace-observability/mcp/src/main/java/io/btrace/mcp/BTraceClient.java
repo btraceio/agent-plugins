@@ -153,6 +153,17 @@ public final class BTraceClient {
    */
   public Thread submitInBackground(
       String host, String fileName, byte[] code, String[] args, CommandListener listener) {
+    return submitInBackground(host, fileName, code, args, listener, () -> {});
+  }
+
+  /** Like the method above; {@code onEnd} runs when the command loop ends, however that happens. */
+  public Thread submitInBackground(
+      String host,
+      String fileName,
+      byte[] code,
+      String[] args,
+      CommandListener listener,
+      Runnable onEnd) {
     Thread thread =
         new Thread(
             () -> {
@@ -160,6 +171,8 @@ public final class BTraceClient {
                 submit(host, fileName, code, args, listener);
               } catch (Exception e) {
                 log.debug("Probe command loop for {} ended", fileName, e);
+              } finally {
+                onEnd.run();
               }
             },
             "btrace-probe-" + fileName);

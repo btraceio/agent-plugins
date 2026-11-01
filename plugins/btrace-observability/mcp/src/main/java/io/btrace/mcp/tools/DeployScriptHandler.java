@@ -112,6 +112,11 @@ public final class DeployScriptHandler {
       }
     }
 
+    if (ClientManager.hasRunningProbe(pid, port)) {
+      return toolResult(ClientManager.runningProbeMessage(pid), true);
+    }
+    String previousOutput = ClientManager.releaseFinished(pid, port);
+
     try {
       String fileName = scriptFileName(script);
 
@@ -161,7 +166,8 @@ public final class DeployScriptHandler {
               exited.set(true);
               statusLatch.countDown();
             }
-          });
+          },
+          probeOutput::finish);
 
       boolean started = statusLatch.await(PROBE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
@@ -184,6 +190,7 @@ public final class DeployScriptHandler {
       resultText +=
           "\nRead what it prints with read_probe_output; stop it with exit_probe, which also returns"
               + " its remaining output.";
+      resultText += ProbeOutput.section("Unread output of the previous probe", previousOutput);
       return toolResult(resultText, false);
     } catch (Exception e) {
       log.error("Failed to deploy script", e);

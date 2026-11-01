@@ -88,6 +88,11 @@ public final class DeployOnelinerHandler {
       return toolResult("Error: 'oneliner' parameter is required", true);
     }
 
+    if (ClientManager.hasRunningProbe(pid, port)) {
+      return toolResult(ClientManager.runningProbeMessage(pid), true);
+    }
+    String previousOutput = ClientManager.releaseFinished(pid, port);
+
     try {
       // Parse and validate the oneliner
       String className = "BTraceOneliner_" + System.currentTimeMillis();
@@ -141,7 +146,8 @@ public final class DeployOnelinerHandler {
               exited.set(true);
               statusLatch.countDown();
             }
-          });
+          },
+          probeOutput::finish);
 
       // Wait for probe to start (or fail)
       boolean started = statusLatch.await(PROBE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
@@ -174,6 +180,7 @@ public final class DeployOnelinerHandler {
       resultText +=
           "\nRead what it prints with read_probe_output; stop it with exit_probe, which also returns"
               + " its remaining output.";
+      resultText += ProbeOutput.section("Unread output of the previous probe", previousOutput);
       return toolResult(resultText, false);
     } catch (Exception e) {
       log.error("Failed to deploy oneliner", e);

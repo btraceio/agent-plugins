@@ -114,6 +114,11 @@ public final class ProbeOutput {
     notifyAll();
   }
 
+  /** Returns whether the probe's session is over. */
+  public boolean isFinished() {
+    return finished.getCount() == 0;
+  }
+
   /** Waits up to the given time for {@link #finish()}; returns whether it happened. */
   public boolean awaitFinished(long millis) throws InterruptedException {
     return finished.await(millis, TimeUnit.MILLISECONDS);

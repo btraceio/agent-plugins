@@ -162,6 +162,65 @@ class ToolHandlersTest {
   }
 
   @Test
+  void refusesASecondDeployWhileAProbeIsRunning() {
+    Map<String, Object> first = deployOneliner("60", 2060);
+    assertFalse((Boolean) first.get("isError"), text(first));
+    BTraceClient running = ClientManager.getExistingClient("60", 2060);
+
+    assertError(deployOneliner("60", 2060), "already running on PID 60");
+    assertError(
+        DeployScriptHandler.execute(Map.of("pid", "60", "script", "class Trace {}", "port", 2060)),
+        "already running on PID 60");
+
+    assertTrue(ClientManager.getExistingClient("60", 2060) == running, "the first probe stays tracked");
+    assertFalse((Boolean) ExitProbeHandler.execute(Map.of("pid", "60", "port", 2060)).get("isError"));
+    assertFalse((Boolean) deployOneliner("60", 2060).get("isError"), "free again after exit_probe");
+    ExitProbeHandler.execute(Map.of("pid", "60", "port", 2060));
+  }
+
+  @Test
+  void aDifferentPidIsNotAffectedByARunningProbe() {
+    assertFalse((Boolean) deployOneliner("61", 2061).get("isError"));
+    assertFalse((Boolean) deployOneliner("62", 2061).get("isError"));
+    ExitProbeHandler.execute(Map.of("pid", "61", "port", 2061));
+    ExitProbeHandler.execute(Map.of("pid", "62", "port", 2061));
+  }
+
+  @Test
+  void aProbeThatExitedByItselfDoesNotBlockTheNextDeploy() throws Exception {
+    Client.exitOutput = "last words\n";
+    try {
+      assertFalse((Boolean) deployOneliner("63", 2063).get("isError"));
+      ClientManager.getExistingClient("63", 2063).sendExit(0);
+      assertTrue(ClientManager.getOutput("63", 2063).awaitFinished(5000));
+    } finally {
+      Client.exitOutput = "";
+    }
+
+    Map<String, Object> next = deployOneliner("63", 2063);
+    assertFalse((Boolean) next.get("isError"), text(next));
+    assertTrue(text(next).contains("last words"), "the unread output is not lost: " + text(next));
+    ExitProbeHandler.execute(Map.of("pid", "63", "port", 2063));
+  }
+
+  @Test
+  void aLostConnectionDoesNotBlockTheNextDeploy() throws Exception {
+    assertFalse((Boolean) deployOneliner("64", 2064).get("isError"));
+    ProbeOutput output = ClientManager.getOutput("64", 2064);
+    ClientManager.getExistingClient("64", 2064).close();
+    assertTrue(output.awaitFinished(5000), "the end of the command loop finishes the session");
+
+    Map<String, Object> next = deployOneliner("64", 2064);
+    assertFalse((Boolean) next.get("isError"), text(next));
+    ExitProbeHandler.execute(Map.of("pid", "64", "port", 2064));
+  }
+
+  private static Map<String, Object> deployOneliner(String pid, int port) {
+    return DeployOnelinerHandler.execute(
+        Map.of("pid", pid, "oneliner", "orders.Api::create @return { print duration }", "port", port));
+  }
+
+  @Test
   void namesScriptSourceAfterItsDeclaredClass() {
     String script = "// this class traces orders\n/* class Ignored */\n@BTrace public class OrderTrace {}";
     assertFalse(

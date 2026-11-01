@@ -76,6 +76,44 @@ public final class ClientManager {
     return removed;
   }
 
+  /**
+   * Returns whether a probe deployed through this server is still running on the given PID and
+   * port. The registry holds one probe per JVM, so deploying over a running one would leave it
+   * running where no tool can reach it.
+   */
+  public static boolean hasRunningProbe(String pid, int port) {
+    if (getExistingClient(pid, port) == null) {
+      return false;
+    }
+    ProbeOutput output = getOutput(pid, port);
+    return output == null || !output.isFinished();
+  }
+
+  /** The tool error for a deploy refused because of {@link #hasRunningProbe}. */
+  public static String runningProbeMessage(String pid) {
+    return "A probe is already running on PID "
+        + pid
+        + ". Stop it with exit_probe, or leave it running with detach_probe, before deploying"
+        + " another.";
+  }
+
+  /**
+   * Forgets a session whose probe has ended on its own and returns what it printed that no tool
+   * has read yet, or "" if there is no such session.
+   */
+  public static String releaseFinished(String pid, int port) {
+    ProbeOutput output = getOutput(pid, port);
+    BTraceClient client = removeClient(pid, port);
+    if (client != null) {
+      try {
+        client.close();
+      } catch (Exception e) {
+        log.debug("Failed to close the finished client for {}:{}", pid, port, e);
+      }
+    }
+    return output == null ? "" : output.drain();
+  }
+
   /** Closes all active client sessions. Called on shutdown. */
   public static void closeAll() {
     for (Map.Entry<String, BTraceClient> entry : activeClients.entrySet()) {
