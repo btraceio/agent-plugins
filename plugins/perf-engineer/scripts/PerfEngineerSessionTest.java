@@ -104,7 +104,10 @@ public class PerfEngineerSessionTest {
             String id = start(root, tmp, target, fakeProfiler(tmp, 0), 2).get("session_id").asText();
             JsonNode finished = waitForState(root, id, Set.of("completed"));
             check(finished.get("target_matches").asBoolean(), "target should still match");
-            check(runTool(root, "cleanup", id).get("cleaned").asBoolean(), "cleanup should report cleaned");
+            JsonNode cleaned = runTool(root, "cleanup", id);
+            check(cleaned.get("cleaned").asBoolean(), "cleanup should report cleaned");
+            check(cleaned.get("removed_artifact").asText().endsWith("profile.jfr"), "cleanup should name the artifact");
+            check(Files.exists(Path.of(cleaned.get("retained_session_dir").asText(), "manifest.json")), "cleanup should keep the manifest");
             check(!Files.exists(tmp.resolve("profile.jfr")), "cleanup should remove the artifact");
         });
     }
