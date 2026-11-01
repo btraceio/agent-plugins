@@ -54,7 +54,14 @@ jobs:
           curl -Ls https://raw.githubusercontent.com/btraceio/jafar/main/jfr-mcp/install.sh | bash
           echo "$HOME/.jbang/bin" >> "$GITHUB_PATH"
 
-      - name: Check every referenced tool exists
+      # What installs actually run. Only a change in this repository can break it.
+      - name: Check every referenced tool exists on the pinned server
+        run: node scripts/check-tool-references.js --pinned
+
+      # The latest release, which installs do not get until the pin moves: this is the early warning
+      # that upstream moved. It still runs after a pinned failure, so one run reports both.
+      - name: Check every referenced tool exists on the latest server
+        if: ${{ !cancelled() }}
         run: node scripts/check-tool-references.js
 
       # A scheduled run failing means upstream moved, and nobody is watching a cron job. An issue
