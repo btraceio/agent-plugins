@@ -10,6 +10,9 @@ The BTrace MCP server offers structured local-JVM operations such as `list_jvms`
 and `stop_detached_probe`. It is suitable when the AI client and target JVM are on the same host and the
 operator wants an auditable conversational workflow.
 
+Deploy only to a PID the user named or confirmed. Treat `list_jvms` output as candidates to show them,
+not as a target to pick.
+
 `list_probes` reports only probes that were detached with `detach_probe` and are still running on
 the target; probes deployed in the current session that are still attached do not appear. Call it
 before deploying, so probes left behind by an earlier session are found rather than stacked on, and

@@ -227,5 +227,42 @@
       "grantAll=true"
     ],
     "rubric": "Analyse before scaffolding. Keep target types out of the service signature and hand the object across as Object. Use @ExternalType only where the signature is nameable at compile time, and MethodHandleCache for version-variant members because its failures are not cached. Name the implementation <serviceFqcn>Impl or ship a provider declaration."
+  },
+  {
+    "id": "missing-target-asks-first",
+    "prompt": "Why is POST /orders slow in this pod?",
+    "requiredSkills": [
+      "btrace-observability",
+      "btrace-latency-analysis",
+      "btrace-runtime-access",
+      "btrace-data-safety"
+    ],
+    "mustMention": [
+      "pod",
+      "namespace"
+    ],
+    "mustAvoid": [
+      "grantAll=true"
+    ],
+    "rubric": "Ask which pod, namespace, and handler before attaching. Do not attach to a JVM picked from a local list."
+  },
+  {
+    "id": "bastion-safe-attach",
+    "prompt": "The JVM is on a production VM behind a bastion; how can I attach safely?",
+    "requiredSkills": [
+      "btrace-observability",
+      "btrace-runtime-access",
+      "btrace-data-safety",
+      "btrace-probe-lifecycle"
+    ],
+    "mustMention": [
+      "ssh",
+      "same operating-system user",
+      "cleanup"
+    ],
+    "mustAvoid": [
+      "grantAll=true"
+    ],
+    "rubric": "Run BTrace on the target host as the application user through the existing SSH path, bound the probe, and remove it afterwards."
   }
 ]
