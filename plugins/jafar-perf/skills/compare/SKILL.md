@@ -31,6 +31,12 @@ Before any number, the result tells you whether the comparison is sound. It flag
   recording may simply have missed periodic work such as a full GC or a cache refresh.
 - **Fewer than ~1000 samples on either side** — per-frame shares are noisy; small moves mean
   nothing.
+- **Fewer than 30 samples on either side** — too few to judge any change. `sufficientSamples`
+  is `false`, and `minSamplesPerRecording` gives the threshold.
+
+The two sample limits do different jobs. 30 is a hard floor: below it, the tool reports nothing
+as a regression. ~1000 is advice: between the two, the tool can still raise regressions, but
+shares are noisy and you should weaken the conclusion.
 
 If any of these fire, say so in your answer and weaken the conclusion accordingly. A
 regression claim that ignores a comparability warning is worse than no claim.
@@ -44,9 +50,24 @@ denominator. Compare `baselineRate` to `candidateRate`; `baselineCount` and
 **`frames`** are shares of execution samples, in percentage points:
 
 - `baselineSelfPct` → `candidateSelfPct`, with `deltaPct` the difference in points.
-- `direction` is `regression` when the share grew, `improvement` when it shrank.
+- `direction` is `regression` when the share grew significantly, `improvement` when it shrank
+  significantly, and `inconclusive` when the move did not meet the significance rules. Never
+  report an `inconclusive` frame as a regression or an improvement.
+- `significant` is the boolean behind that call, and significant rows sort first. A move is
+  significant only with at least 30 samples in each recording, at least 5 samples of that frame
+  in one of them, and a two-proportion z score of at least 3.
 - Frames moving less than `minDeltaPct` are omitted deliberately. Do not go hunting for
   smaller moves and present them as findings.
+
+Rates in `metrics` stay readable on a thin recording, but no rate finding is raised while
+`sufficientSamples` is `false`. The floor counts execution samples, so a recording with plenty
+of other events but too few samples is still thin.
+
+**Older servers.** jafar `v0.29.0` omits `significant`, `sufficientSamples` and
+`minSamplesPerRecording`. There, `direction` is only the sign of the move, and frame, rate and
+`regression:none` findings are raised however thin the data is. If these fields are missing, check
+`baseline.samples` and `candidate.samples` and each frame's `baselineSamples` and
+`candidateSamples` against the rules above before calling anything a regression or a clean result.
 
 The single most common error to avoid: **a share is not a duration**. A frame growing from
 3% to 9% of samples means the profile's shape changed. If total CPU work also fell, that
@@ -70,10 +91,19 @@ Then locate the code with `Grep` and state the file and line.
 
 ## When nothing changed
 
-The tool returns an explicit "no regression above the noise floor" finding. Report exactly
-that. It is not the same as "the two builds perform identically": a change smaller than
-sampling noise is invisible to this method, and you should say so rather than implying
-equivalence.
+The tool returns an explicit "no regression above the noise floor" finding,
+`regression:none`. Report exactly that. It is not the same as "the two builds perform
+identically": a change smaller than sampling noise is invisible to this method, and you should
+say so rather than implying equivalence.
+
+## When the data is too thin
+
+If either recording has too few samples, an INFO `regression:insufficient-samples` finding
+replaces `regression:none`, so a missing `regression:none` does not imply a regression. Look for
+`regression:frame-*` and `regression:rate-*` findings to decide that.
+
+Report the comparison as inconclusive: it neither shows a regression nor rules one out. Every
+frame will be `inconclusive`. Record both runs for longer, or under load, and compare again.
 
 ## Verifying a fix
 
@@ -84,7 +114,7 @@ comparison measures your test setup rather than the fix. Then:
 2. Apply the change, record again with identical settings.
 3. `jfr_compare` and read the frame you expected to move.
 
-A fix is confirmed when the frame you targeted shrank *and* the comparability block is
-clean. If the targeted frame did not move but something else did, you have learned that
+A fix is confirmed when the frame you targeted shows `direction: improvement` *and* the
+comparability block is clean. An `inconclusive` shrink confirms nothing. If the targeted frame did not move but something else did, you have learned that
 your model of the problem was wrong — report that, rather than claiming a win from an
 unrelated improvement.

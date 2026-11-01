@@ -227,5 +227,41 @@
       "grantAll=true"
     ],
     "rubric": "Analyse before scaffolding. Keep target types out of the service signature and hand the object across as Object. Use @ExternalType only where the signature is nameable at compile time, and MethodHandleCache for version-variant members because its failures are not cached. Name the implementation <serviceFqcn>Impl or ship a provider declaration."
+  },
+  {
+    "id": "compare-thin-recordings",
+    "prompt": "I ran jfr_compare on two recordings of our service. Baseline has 12 execution samples, candidate has 9. com.acme.Cache.get went from 8.33% to 22.22% of samples, its direction is inconclusive, and sufficientSamples is false. There is a regression:insufficient-samples finding and no regression:none finding. Did this build regress?",
+    "requiredSkills": [
+      "compare"
+    ],
+    "mustMention": [
+      "inconclusive",
+      "30",
+      "samples",
+      "record"
+    ],
+    "mustAvoid": [
+      "is a regression",
+      "perform identically"
+    ],
+    "rubric": "Report the comparison as inconclusive: it neither shows a regression nor rules one out. A missing regression:none does not imply a regression. Name the 30-sample floor and recommend recording both runs for longer or under load."
+  },
+  {
+    "id": "compare-inconclusive-fix",
+    "prompt": "I shipped a fix for com.acme.Parser.parse and compared before and after with jfr_compare. Each recording has 600 samples and the same settings. The frame went from 6.0% to 4.0%, with direction inconclusive and significant false. The comparability block only has the low sample count note. Can I say the fix worked?",
+    "requiredSkills": [
+      "compare"
+    ],
+    "mustMention": [
+      "inconclusive",
+      "improvement",
+      "significan",
+      "1000"
+    ],
+    "mustAvoid": [
+      "fix is confirmed",
+      "confirmed the fix"
+    ],
+    "rubric": "Do not confirm the fix: a fix needs direction improvement and a clean comparability block, and an inconclusive shrink confirms nothing. Distinguish the ~1000-sample noise advice from the 30-sample hard floor, which this data clears, and suggest longer recordings."
   }
 ]
