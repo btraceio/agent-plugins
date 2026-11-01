@@ -14,6 +14,7 @@ public class Client {
   public static final List<String> laterOutput = new ArrayList<>();
   /** What a probe prints while it shuts down after an exit request. */
   public static String exitOutput = "";
+  public static boolean failAttach = false;
   public final int port;
   public String attachedPid;
   public int exitCode;
@@ -36,6 +37,9 @@ public class Client {
 
   public void attach(String pid, String systemClassPath, String bootstrapClassPath)
       throws java.io.IOException {
+    if (failAttach) {
+      throw new java.io.IOException("attach failed");
+    }
     if (pid.equals("port-busy")) {
       throw new java.io.IOException("Port " + port + " unavailable.");
     }

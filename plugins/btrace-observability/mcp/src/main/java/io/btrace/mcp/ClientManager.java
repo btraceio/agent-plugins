@@ -77,24 +77,40 @@ public final class ClientManager {
   }
 
   /**
-   * Returns whether a probe deployed through this server is still running on the given PID and
-   * port. The registry holds one probe per JVM, so deploying over a running one would leave it
-   * running where no tool can reach it.
+   * Returns why a probe cannot be deployed to the given PID and port, or null if it can. The
+   * registry holds one probe per JVM, so deploying over a running one would leave it running where
+   * no tool can reach it.
    */
-  public static boolean hasRunningProbe(String pid, int port) {
+  public static String deployRefusal(String pid, int port) {
     if (getExistingClient(pid, port) == null) {
-      return false;
+      return null;
     }
     ProbeOutput output = getOutput(pid, port);
-    return output == null || !output.isFinished();
+    if (output == null || !output.isFinished()) {
+      return "A probe is already running on PID "
+          + pid
+          + ". Stop it with exit_probe, or leave it running with detach_probe, before deploying"
+          + " another.";
+    }
+    return lostConnectionError(pid, port);
   }
 
-  /** The tool error for a deploy refused because of {@link #hasRunningProbe}. */
-  public static String runningProbeMessage(String pid) {
-    return "A probe is already running on PID "
+  /**
+   * If the session lost its connection without the agent confirming an exit, forgets it and returns
+   * the tool error saying so; otherwise returns null. The agent keeps such a probe running, listed
+   * like a detached one, so after this the tools that reach it are the ones for detached probes.
+   */
+  public static String lostConnectionError(String pid, int port) {
+    ProbeOutput output = getOutput(pid, port);
+    if (output == null || !output.isFinished() || output.hasExited()) {
+      return null;
+    }
+    String unread = releaseFinished(pid, port);
+    return "The connection to the probe on PID "
         + pid
-        + ". Stop it with exit_probe, or leave it running with detach_probe, before deploying"
-        + " another.";
+        + " was lost, and the probe may still be running. Find it with list_probes and stop it with"
+        + " stop_detached_probe."
+        + ProbeOutput.section("Unread output", unread);
   }
 
   /**

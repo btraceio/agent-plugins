@@ -112,10 +112,10 @@ public final class DeployScriptHandler {
       }
     }
 
-    if (ClientManager.hasRunningProbe(pid, port)) {
-      return toolResult(ClientManager.runningProbeMessage(pid), true);
+    String refusal = ClientManager.deployRefusal(pid, port);
+    if (refusal != null) {
+      return toolResult(refusal, true);
     }
-    String previousOutput = ClientManager.releaseFinished(pid, port);
 
     try {
       String fileName = scriptFileName(script);
@@ -150,7 +150,7 @@ public final class DeployScriptHandler {
             if (statusLatch.getCount() == 0) {
               // After startup, keep what the probe prints for read_probe_output and exit_probe.
               if (client.commandType(cmd) == client.commandConstant("EXIT")) {
-                probeOutput.finish();
+                probeOutput.exited();
               } else {
                 probeOutput.append(client.printableText(cmd));
               }
@@ -181,6 +181,8 @@ public final class DeployScriptHandler {
         return toolResult("Probe exited with error:\n" + output.toString(), true);
       }
 
+      // Only now: until this deploy succeeds, read_probe_output can still reach that output.
+      String previousOutput = ClientManager.releaseFinished(pid, port);
       ClientManager.registerClient(pid, port, client, probeOutput);
 
       String resultText = "Script deployed successfully to PID " + pid + ".\nPort: " + port + "\n";

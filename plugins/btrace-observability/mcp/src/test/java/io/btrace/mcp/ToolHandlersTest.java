@@ -204,15 +204,54 @@ class ToolHandlersTest {
   }
 
   @Test
-  void aLostConnectionDoesNotBlockTheNextDeploy() throws Exception {
+  void aLostConnectionIsNotMistakenForAStoppedProbe() throws Exception {
+    Client.exitOutput = "";
     assertFalse((Boolean) deployOneliner("64", 2064).get("isError"));
     ProbeOutput output = ClientManager.getOutput("64", 2064);
     ClientManager.getExistingClient("64", 2064).close();
     assertTrue(output.awaitFinished(5000), "the end of the command loop finishes the session");
 
-    Map<String, Object> next = deployOneliner("64", 2064);
-    assertFalse((Boolean) next.get("isError"), text(next));
+    // The agent keeps a probe running when its client goes away, so the deploy must say so.
+    Map<String, Object> refused = deployOneliner("64", 2064);
+    assertError(refused, "may still be running");
+    assertTrue(text(refused).contains("list_probes"), text(refused));
+    assertTrue(text(refused).contains("stop_detached_probe"), text(refused));
+
+    // Now reachable through those tools, so the JVM is free for the next deploy.
+    assertFalse((Boolean) deployOneliner("64", 2064).get("isError"));
     ExitProbeHandler.execute(Map.of("pid", "64", "port", 2064));
+  }
+
+  @Test
+  void exitAfterALostConnectionDoesNotClaimTheProbeStopped() throws Exception {
+    assertFalse((Boolean) deployOneliner("65", 2065).get("isError"));
+    ProbeOutput output = ClientManager.getOutput("65", 2065);
+    ClientManager.getExistingClient("65", 2065).close();
+    assertTrue(output.awaitFinished(5000));
+
+    assertError(ExitProbeHandler.execute(Map.of("pid", "65", "port", 2065)), "may still be running");
+  }
+
+  @Test
+  void aFailedDeployKeepsTheUnreadOutputOfAProbeThatExited() throws Exception {
+    Client.exitOutput = "last words\n";
+    try {
+      assertFalse((Boolean) deployOneliner("66", 2066).get("isError"));
+      ClientManager.getExistingClient("66", 2066).sendExit(0);
+      assertTrue(ClientManager.getOutput("66", 2066).awaitFinished(5000));
+    } finally {
+      Client.exitOutput = "";
+    }
+
+    Client.failAttach = true;
+    try {
+      assertTrue((Boolean) deployOneliner("66", 2066).get("isError"));
+    } finally {
+      Client.failAttach = false;
+    }
+
+    Map<String, Object> read = ReadProbeOutputHandler.execute(Map.of("pid", "66", "port", 2066));
+    assertTrue(text(read).contains("last words"), text(read));
   }
 
   private static Map<String, Object> deployOneliner(String pid, int port) {

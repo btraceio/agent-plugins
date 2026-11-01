@@ -79,6 +79,11 @@ public final class ExitProbeHandler {
         return toolResult("No active BTrace session for PID " + pid, true);
       }
 
+      String lost = ClientManager.lostConnectionError(pid, port);
+      if (lost != null) {
+        return toolResult(lost, true);
+      }
+
       ProbeOutput output = ClientManager.getOutput(pid, port);
       client.sendExit(0);
       if (output != null) {
