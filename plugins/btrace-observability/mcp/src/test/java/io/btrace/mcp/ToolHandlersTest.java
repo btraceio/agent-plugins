@@ -75,7 +75,14 @@ class ToolHandlersTest {
 
     Map<String, Object> probes = ListProbesHandler.execute(Map.of("pid", "53", "port", 2053));
     assertFalse((Boolean) probes.get("isError"));
-    assertTrue(text(probes).contains("Active probes on PID 53"));
+    assertTrue(text(probes).contains("Detached probes on PID 53"));
+    assertFalse(text(probes).contains("attached on port"));
+
+    assertFalse((Boolean) DeployScriptHandler.execute(
+        Map.of("pid", "54", "script", "class Trace {}", "port", 2054)).get("isError"));
+    Map<String, Object> withAttached = ListProbesHandler.execute(Map.of("pid", "54", "port", 2054));
+    assertTrue(text(withAttached).contains("attached on port 2054"), text(withAttached));
+    assertFalse((Boolean) ExitProbeHandler.execute(Map.of("pid", "54", "port", 2054)).get("isError"));
   }
 
   @Test
