@@ -15,6 +15,7 @@ import io.btrace.mcp.tools.ReadProbeOutputHandler;
 import io.btrace.mcp.tools.SendEventHandler;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
 class ToolHandlersTest {
@@ -149,10 +150,12 @@ class ToolHandlersTest {
   }
 
   @Test
-  void detachReturnsTheUnreadOutput() {
+  void detachReturnsTheUnreadOutput() throws Exception {
     Client.laterOutput.add("validateOrder threw IllegalStateException\n");
     try {
       DeployScriptHandler.execute(Map.of("pid", "57", "script", "class Trace {}", "port", 2057));
+      // Deploying returns at the status command; the output after it arrives on the probe thread.
+      assertTrue(Client.last.laterOutputSent.await(5, TimeUnit.SECONDS));
       Map<String, Object> detached = DetachProbeHandler.execute(Map.of("pid", "57", "port", 2057));
       assertFalse((Boolean) detached.get("isError"));
       assertTrue(text(detached).contains("validateOrder threw IllegalStateException"), text(detached));
