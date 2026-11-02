@@ -228,6 +228,12 @@ class McpServerE2ETest {
     long frozen = counter(EXIT_PROBE, "calls");
     Thread.sleep(2_000);
     assertEquals(frozen, counter(EXIT_PROBE, "calls"), "probe still firing after exit_probe");
+
+    Map<String, Object> jvms = tool("list_jvms");
+    assertSuccess(jvms);
+    assertTrue(
+        text(jvms).contains("agent loaded, no probe from this server"),
+        "the agent stays loaded after exit_probe:\n" + text(jvms));
   }
 
   @Test
