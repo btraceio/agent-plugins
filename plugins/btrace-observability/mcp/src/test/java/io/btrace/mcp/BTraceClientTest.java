@@ -83,14 +83,14 @@ class BTraceClientTest {
   }
 
   @Test
-  void aBusyPortInTheNewerClientWordingDoesNotSuggestTheCliFlag() throws Exception {
+  void aBusyPortInTheCurrentClientWordingNamesTheArgumentNotTheCliFlag() throws Exception {
     BTraceClient client = BTraceClient.create(2020);
 
     IOException e = assertThrows(IOException.class, () -> client.attach("port-in-use", null, "."));
 
     assertTrue(e.getMessage().startsWith("Port 2020 unavailable. Another"), e.getMessage());
     assertTrue(e.getMessage().contains("'port' argument"), e.getMessage());
-    assertTrue(!e.getMessage().contains("-p <port>"), e.getMessage());
+    assertFalse(e.getMessage().contains("-p"), e.getMessage());
   }
 
   @Test

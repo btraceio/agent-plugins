@@ -11,7 +11,7 @@ export default function (pi: {
 }) {
   pi.registerMcpServer("jafar", {
     command: "jbang",
-    args: ["jfr-mcp@btraceio", "--stdio", "--attach"],
+    args: ["--java", "26+", "io.btrace:jfr-mcp:0.29.0", "--stdio", "--attach"],
     description: "Analyse JFR, pprof, OTLP and HPROF profiling data",
   });
   pi.registerMcpServer("btrace", {

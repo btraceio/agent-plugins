@@ -12,6 +12,7 @@
 //
 // Usage:
 //   node scripts/check-tool-references.js                     # jbang --fresh jfr-mcp@btraceio --stdio
+//   node scripts/check-tool-references.js --pinned            # the release the plugins pin
 //   node scripts/check-tool-references.js --jar path/to.jar   # a locally built shadow jar
 //   node scripts/check-tool-references.js --command "..."     # any command speaking MCP on stdio
 //
@@ -44,12 +45,21 @@ function parseArgs(argv) {
   // and the check reports drift that is not there.
   const args = { command: 'jbang --fresh jfr-mcp@btraceio --stdio', timeout: 180 };
   for (let i = 2; i < argv.length; i++) {
-    if (argv[i] === '--jar') args.command = `java -jar ${argv[++i]} --stdio`;
+    if (argv[i] === '--pinned') args.command = pinnedCommand();
+    else if (argv[i] === '--jar') args.command = `java -jar ${argv[++i]} --stdio`;
     else if (argv[i] === '--command') args.command = argv[++i];
     else if (argv[i] === '--timeout') args.timeout = Number(argv[++i]);
     else throw new Error(`unknown argument: ${argv[i]}`);
   }
   return args;
+}
+
+// The command the plugins launch, minus --attach. validate-repository.js keeps them on one version,
+// so any plugin's .mcp.json will do.
+function pinnedCommand() {
+  const mcp = JSON.parse(fs.readFileSync(path.join(root, 'plugins', jfrMcpPlugins()[0], '.mcp.json'), 'utf8'));
+  const server = Object.values(mcp.mcpServers).find(s => s.args.some(a => a.includes('jfr-mcp')));
+  return [server.command, ...server.args.filter(a => a !== '--attach')].join(' ');
 }
 
 // Plugins that start jfr-mcp, found from their own .mcp.json rather than a hard-coded list.

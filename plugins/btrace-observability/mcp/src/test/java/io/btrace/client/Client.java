@@ -42,6 +42,7 @@ public class Client {
       throw new java.io.IOException("Port " + port + " unavailable.");
     }
     if (pid.equals("port-in-use")) {
+      // The wording of the current BTrace client
       throw new java.io.IOException(
           "Port "
               + port

@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 public final class BTraceClient {
   private static final Logger log = LoggerFactory.getLogger(BTraceClient.class);
   private static final String JAR_PATH_PROPERTY = "btrace.jar.path";
+  // Older clients say "unavailable"; newer ones say "is in use" and advise the CLI's -p flag
   private static final Pattern PORT_UNAVAILABLE =
       Pattern.compile("Port (\\d+) (?:unavailable|is in use by another process).*");
 
@@ -238,16 +239,17 @@ public final class BTraceClient {
    */
   private static Exception unwrap(InvocationTargetException e) {
     Throwable cause = e.getCause();
-    if (cause instanceof IOException && cause.getMessage() != null) {
-      Matcher busyPort = PORT_UNAVAILABLE.matcher(cause.getMessage());
-      if (busyPort.matches()) {
-        return new IOException(
-            "Port "
-                + busyPort.group(1)
-                + " unavailable. Another BTrace agent or process is using it; pass a different"
-                + " 'port' argument.",
-            cause);
-      }
+    Matcher portUnavailable =
+        cause instanceof IOException && cause.getMessage() != null
+            ? PORT_UNAVAILABLE.matcher(cause.getMessage())
+            : null;
+    if (portUnavailable != null && portUnavailable.matches()) {
+      return new IOException(
+          "Port "
+              + portUnavailable.group(1)
+              + " unavailable. Another BTrace agent or process is using it; pass a different"
+              + " 'port' argument.",
+          cause);
     }
     if (cause instanceof Exception && cause.getMessage() != null) {
       return (Exception) cause;

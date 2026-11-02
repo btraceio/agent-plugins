@@ -72,6 +72,20 @@ for (const file of javaFiles) {
   if (/^\/\/DEPS .*-SNAPSHOT/m.test(body) && !/^\/\/REPOS .*snapshots/m.test(body)) errors.push(`${path.relative(root, file)}: snapshot //DEPS without a snapshot //REPOS`);
 }
 
+// Every jfr-mcp launch attaches to one shared daemon, so they must all name the same exact release.
+// The catalog alias floats to whatever was published last, which is what the pin exists to prevent.
+const jfrMcpFiles = ['extensions/mcp-servers.ts', 'plugins/jafar-perf/.mcp.json', 'plugins/jafar-perf/README.md', 'plugins/jfr-analyzer/.mcp.json', 'plugins/jfr-analyzer/README.md'];
+const jfrMcpRefs = new Set();
+for (const file of jfrMcpFiles) {
+  const refs = fs.readFileSync(path.join(root, file), 'utf8').match(/jfr-mcp@btraceio|io\.btrace:jfr-mcp:[^\s"]*/g) || [];
+  if (refs.length === 0) errors.push(`${file}: no jfr-mcp launch found`);
+  for (const ref of refs) {
+    if (!/^io\.btrace:jfr-mcp:\d+\.\d+\.\d+$/.test(ref)) errors.push(`${file}: ${ref} is not pinned to an exact release`);
+    jfrMcpRefs.add(ref);
+  }
+}
+if (jfrMcpRefs.size > 1) errors.push(`jfr-mcp launches disagree: ${[...jfrMcpRefs].join(', ')}`);
+
 if (errors.length) {
   console.error(errors.map(error => `- ${error}`).join('\n'));
   process.exit(1);
