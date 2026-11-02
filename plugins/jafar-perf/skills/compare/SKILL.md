@@ -63,7 +63,7 @@ Rates in `metrics` stay readable on a thin recording, but no rate finding is rai
 `sufficientSamples` is `false`. The floor counts execution samples, so a recording with plenty
 of other events but too few samples is still thin.
 
-**Older servers.** jafar `v0.29.0` omits `significant`, `sufficientSamples` and
+**Servers without these fields.** jafar `v0.29.0`, the version this plugin pins, omits `significant`, `sufficientSamples` and
 `minSamplesPerRecording`. There, `direction` is only the sign of the move, and frame, rate and
 `regression:none` findings are raised however thin the data is. If these fields are missing, check
 `baseline.samples` and `candidate.samples` and each frame's `baselineSamples` and
