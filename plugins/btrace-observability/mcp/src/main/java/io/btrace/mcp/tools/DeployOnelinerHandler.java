@@ -88,7 +88,7 @@ public final class DeployOnelinerHandler {
       return toolResult("Error: 'oneliner' parameter is required", true);
     }
 
-    String refusal = ClientManager.deployRefusal(pid, port);
+    String refusal = ClientManager.deployRefusal(pid);
     if (refusal != null) {
       return toolResult(refusal, true);
     }
@@ -129,11 +129,7 @@ public final class DeployOnelinerHandler {
           cmd -> {
             if (statusLatch.getCount() == 0) {
               // After startup, keep what the probe prints for read_probe_output and exit_probe.
-              if (client.commandType(cmd) == client.commandConstant("EXIT")) {
-                probeOutput.exited();
-              } else {
-                probeOutput.append(client.printableText(cmd));
-              }
+              client.recordProbeCommand(cmd, probeOutput);
               return;
             }
             output.append(client.printableText(cmd));
@@ -163,7 +159,7 @@ public final class DeployOnelinerHandler {
       }
 
       // Only now: until this deploy succeeds, read_probe_output can still reach that output.
-      String previousOutput = ClientManager.releaseFinished(pid, port);
+      String previousOutput = ClientManager.releaseFinished(pid);
       ClientManager.registerClient(pid, port, client, probeOutput);
 
       String resultText =

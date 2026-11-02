@@ -95,6 +95,7 @@ public final class ListProbesHandler {
         return toolResult("Timed out waiting for probe list from PID " + pid, true);
       }
 
+      ClientManager.forgetLostSession(pid);
       String resultText = "Active probes on PID " + pid + ":\n" + output.toString();
       return toolResult(resultText, false);
     } catch (Exception e) {

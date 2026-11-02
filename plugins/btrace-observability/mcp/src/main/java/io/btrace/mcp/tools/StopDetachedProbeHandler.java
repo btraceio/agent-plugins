@@ -119,6 +119,7 @@ public final class StopDetachedProbeHandler {
       } catch (ExecutionException e) {
         throw e.getCause() instanceof Exception ? (Exception) e.getCause() : e;
       }
+      ClientManager.forgetLostSession(pid);
       return toolResult("Probe " + probeId + " stopped and removed from PID " + pid, false);
     } catch (Exception e) {
       log.error("Failed to stop detached probe", e);

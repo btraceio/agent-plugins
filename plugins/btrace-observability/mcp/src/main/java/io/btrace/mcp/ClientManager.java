@@ -77,47 +77,88 @@ public final class ClientManager {
   }
 
   /**
-   * Returns why a probe cannot be deployed to the given PID and port, or null if it can. The
-   * registry holds one probe per JVM, so deploying over a running one would leave it running where
-   * no tool can reach it.
+   * Returns the port of this server's session on the given PID, or -1 if there is none. A JVM has a
+   * single agent, and the client silently uses its port whatever port the tool was given, so one
+   * JVM has one session however it was requested.
    */
-  public static String deployRefusal(String pid, int port) {
-    if (getExistingClient(pid, port) == null) {
+  public static int sessionPort(String pid) {
+    String prefix = pid + ":";
+    for (String key : activeClients.keySet()) {
+      if (key.startsWith(prefix)) {
+        return Integer.parseInt(key.substring(prefix.length()));
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * Returns why a probe cannot be deployed to the given PID, or null if it can. The registry holds
+   * one probe per JVM, so deploying over a running one would leave it running where no tool can
+   * reach it.
+   */
+  public static String deployRefusal(String pid) {
+    int port = sessionPort(pid);
+    if (port < 0) {
       return null;
     }
     ProbeOutput output = getOutput(pid, port);
     if (output == null || !output.isFinished()) {
       return "A probe is already running on PID "
           + pid
-          + ". Stop it with exit_probe, or leave it running with detach_probe, before deploying"
+          + " (port "
+          + port
+          + "). Stop it with exit_probe, or leave it running with detach_probe, before deploying"
           + " another.";
     }
-    return lostConnectionError(pid, port);
+    return output.hasExited() ? null : lostConnectionMessage(pid, output);
   }
 
   /**
-   * If the session lost its connection without the agent confirming an exit, forgets it and returns
-   * the tool error saying so; otherwise returns null. The agent keeps such a probe running, listed
-   * like a detached one, so after this the tools that reach it are the ones for detached probes.
+   * Returns the tool error for a session whose probe is no longer connected, or null if the session
+   * is live or does not exist. Tools that talk to a running probe call this first.
    */
-  public static String lostConnectionError(String pid, int port) {
+  public static String endedSessionError(String pid, int port) {
     ProbeOutput output = getOutput(pid, port);
-    if (output == null || !output.isFinished() || output.hasExited()) {
+    if (output == null || !output.isFinished()) {
       return null;
     }
-    String unread = releaseFinished(pid, port);
+    return output.hasExited()
+        ? "The probe on PID "
+            + pid
+            + " already exited."
+            + ProbeOutput.section("Unread output", output.drain())
+        : lostConnectionMessage(pid, output);
+  }
+
+  private static String lostConnectionMessage(String pid, ProbeOutput output) {
     return "The connection to the probe on PID "
         + pid
         + " was lost, and the probe may still be running. Find it with list_probes and stop it with"
         + " stop_detached_probe."
-        + ProbeOutput.section("Unread output", unread);
+        + ProbeOutput.section("Unread output", output.drain());
   }
 
   /**
-   * Forgets a session whose probe has ended on its own and returns what it printed that no tool
-   * has read yet, or "" if there is no such session.
+   * Forgets a session that lost its connection, once the caller has used a tool that reaches such a
+   * probe. Until then deploys stay refused, so that retrying cannot stack a second probe on it.
    */
-  public static String releaseFinished(String pid, int port) {
+  public static void forgetLostSession(String pid) {
+    int port = sessionPort(pid);
+    ProbeOutput output = port < 0 ? null : getOutput(pid, port);
+    if (output != null && output.isFinished() && !output.hasExited()) {
+      releaseFinished(pid);
+    }
+  }
+
+  /**
+   * Forgets the session on the given PID, if any, and returns what its probe printed that no tool
+   * has read yet.
+   */
+  public static String releaseFinished(String pid) {
+    int port = sessionPort(pid);
+    if (port < 0) {
+      return "";
+    }
     ProbeOutput output = getOutput(pid, port);
     BTraceClient client = removeClient(pid, port);
     if (client != null) {
