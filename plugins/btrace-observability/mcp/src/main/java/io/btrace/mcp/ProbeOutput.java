@@ -36,6 +36,7 @@ public final class ProbeOutput {
   private final CountDownLatch finished = new CountDownLatch(1);
   private long droppedLines;
   private long lastAppendNanos;
+  private volatile boolean exited;
 
   public ProbeOutput(int maxChars) {
     this.maxChars = maxChars;
@@ -112,6 +113,25 @@ public final class ProbeOutput {
   public synchronized void finish() {
     finished.countDown();
     notifyAll();
+  }
+
+  /** Returns whether the probe's session is over. */
+  public boolean isFinished() {
+    return finished.getCount() == 0;
+  }
+
+  /** Marks the session as over because the agent confirmed that the probe exited. */
+  public void exited() {
+    exited = true;
+    finish();
+  }
+
+  /**
+   * Returns whether the agent confirmed the exit. A session that finished without this only lost
+   * its connection, and the agent keeps such a probe running.
+   */
+  public boolean hasExited() {
+    return exited;
   }
 
   /** Waits up to the given time for {@link #finish()}; returns whether it happened. */

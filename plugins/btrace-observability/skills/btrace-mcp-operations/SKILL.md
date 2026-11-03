@@ -13,8 +13,9 @@ operator wants an auditable conversational workflow.
 Deploy only to a PID the user named or confirmed. Treat `list_jvms` output as candidates to show them,
 not as a target to pick.
 
-`list_probes` reports only probes that were detached with `detach_probe` and are still running on
-the target; probes deployed in the current session that are still attached do not appear. Call it
+`list_probes` reports only probes that were detached with `detach_probe`, or whose connection was
+lost, and are still running on the target; probes deployed in the current session that are still
+attached do not appear. Call it
 before deploying, so probes left behind by an earlier session are found rather than stacked on, and
 after any `detach_probe` to confirm what is still running. Stop a listed probe with
 `stop_detached_probe`, passing its id or the whole `list_probes` line, only after the operator
@@ -36,6 +37,8 @@ reads elsewhere, have the probe export counters (`@Export` fields, read with
 - The MCP server uses the local JVM Attach API; it cannot attach across SSH, Docker, or Kubernetes
   boundaries. For those cases, first use `btrace-runtime-access` to place the client/server in the
   target environment.
+- Deploy one probe per JVM at a time: a deploy is refused while an earlier probe still runs there,
+  so call `exit_probe` first.
 - Treat deployment and cleanup as one operation: record the target PID and call `exit_probe` after
   the observation window. Prefer `exit_probe` over `detach_probe`; a detached probe keeps running
   and can afterwards only be found with `list_probes` and stopped with `stop_detached_probe`.

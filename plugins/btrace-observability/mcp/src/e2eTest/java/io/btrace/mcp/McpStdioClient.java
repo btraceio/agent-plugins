@@ -50,6 +50,11 @@ final class McpStdioClient implements AutoCloseable {
     reader.start();
   }
 
+  /** Kills the server with no chance to clean up, as a crash would. */
+  void kill() throws Exception {
+    process.destroyForcibly().waitFor();
+  }
+
   Map<String, Object> initialize(Duration timeout) throws Exception {
     Map<String, Object> clientInfo = new LinkedHashMap<>();
     clientInfo.put("name", "btrace-mcp-e2e");

@@ -80,6 +80,11 @@ public final class DetachProbeHandler {
         return toolResult("No active BTrace session for PID " + pid, true);
       }
 
+      String ended = ClientManager.endedSessionError(pid, port);
+      if (ended != null) {
+        return toolResult(ended, true);
+      }
+
       ProbeOutput output = ClientManager.getOutput(pid, port);
       client.sendDisconnect();
       ClientManager.removeClient(pid, port);

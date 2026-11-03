@@ -85,6 +85,10 @@ public final class ReadProbeOutputHandler {
               + ". Only probes deployed in this session and not yet stopped or detached can be read.",
           true);
     }
+    String ended = ClientManager.endedSessionError(pid, port);
+    if (ended != null) {
+      return toolResult(ended, false);
+    }
     int waitSeconds = Math.max(0, Math.min(MAX_WAIT_SECONDS, getIntArg(arguments, "wait_seconds", 0)));
     String text;
     try {

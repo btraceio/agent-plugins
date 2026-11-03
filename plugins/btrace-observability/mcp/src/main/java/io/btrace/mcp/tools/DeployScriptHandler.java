@@ -112,6 +112,11 @@ public final class DeployScriptHandler {
       }
     }
 
+    String refusal = ClientManager.deployRefusal(pid);
+    if (refusal != null) {
+      return toolResult(refusal, true);
+    }
+
     try {
       String fileName = scriptFileName(script);
 
@@ -144,11 +149,7 @@ public final class DeployScriptHandler {
           cmd -> {
             if (statusLatch.getCount() == 0) {
               // After startup, keep what the probe prints for read_probe_output and exit_probe.
-              if (client.commandType(cmd) == client.commandConstant("EXIT")) {
-                probeOutput.finish();
-              } else {
-                probeOutput.append(client.printableText(cmd));
-              }
+              client.recordProbeCommand(cmd, probeOutput);
               return;
             }
             output.append(client.printableText(cmd));
@@ -161,7 +162,8 @@ public final class DeployScriptHandler {
               exited.set(true);
               statusLatch.countDown();
             }
-          });
+          },
+          probeOutput::finish);
 
       boolean started = statusLatch.await(PROBE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
@@ -175,6 +177,8 @@ public final class DeployScriptHandler {
         return toolResult("Probe exited with error:\n" + output.toString(), true);
       }
 
+      // Only now: until this deploy succeeds, read_probe_output can still reach that output.
+      String previousOutput = ClientManager.releaseFinished(pid);
       ClientManager.registerClient(pid, port, client, probeOutput);
 
       String resultText = "Script deployed successfully to PID " + pid + ".\nPort: " + port + "\n";
@@ -184,6 +188,7 @@ public final class DeployScriptHandler {
       resultText +=
           "\nRead what it prints with read_probe_output; stop it with exit_probe, which also returns"
               + " its remaining output.";
+      resultText += ProbeOutput.section("Unread output of the previous probe", previousOutput);
       return toolResult(resultText, false);
     } catch (Exception e) {
       log.error("Failed to deploy script", e);
