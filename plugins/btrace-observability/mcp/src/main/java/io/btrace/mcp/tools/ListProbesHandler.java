@@ -87,8 +87,10 @@ public final class ListProbesHandler {
       return toolResult("Error: 'pid' parameter is required", true);
     }
 
-    // Read before listing: a lost session is forgotten once list_probes has shown its probe.
-    String connected = connectedSession(pid);
+    // Read before listing. Only a session this listing reports as lost is forgotten afterwards; one
+    // that drops while the list is in flight is left for the next call to report.
+    Session session = connectedSession(pid);
+    String connectedLine = "Connected through this MCP server: " + session.description;
     BTraceClient client = null;
     try {
       client = ClientManager.getClient(port);
@@ -111,19 +113,21 @@ public final class ListProbesHandler {
       try {
         list.get(timeoutMillis, TimeUnit.MILLISECONDS);
       } catch (TimeoutException e) {
-        return toolResult("Timed out waiting for probe list from PID " + pid, true);
+        return toolResult(
+            "Timed out waiting for probe list from PID " + pid + "\n" + connectedLine, true);
       } catch (ExecutionException e) {
         throw e.getCause() instanceof Exception ? (Exception) e.getCause() : e;
       }
 
-      ClientManager.forgetLostSession(pid);
+      if (session.lost) {
+        ClientManager.forgetLostSession(pid);
+      }
       String detached = output.toString().trim();
       String resultText =
           "Probes on PID "
               + pid
               + ":\n"
-              + "Connected through this MCP server: "
-              + connected
+              + connectedLine
               + "\n"
               + "Detached (stop with stop_detached_probe): "
               + (detached.isEmpty() ? "none" : "\n" + detached)
@@ -131,29 +135,56 @@ public final class ListProbesHandler {
               + "Probes connected through another client (a btrace CLI or another MCP server) are"
               + " not listed.";
       return toolResult(resultText, false);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return toolResult(
+          "Interrupted while listing probes on PID " + pid + "\n" + connectedLine, true);
     } catch (Exception e) {
       log.error("Failed to list probes", e);
-      return toolResult("Error listing probes on PID " + pid + ": " + e.getMessage(), true);
+      return toolResult(
+          "Error listing probes on PID " + pid + ": " + rootMessage(e) + "\n" + connectedLine,
+          true);
     } finally {
       closeQuietly(client);
     }
   }
 
+  /** What this server's session on a PID looked like when the listing started. */
+  private static final class Session {
+    final String description;
+    final boolean lost;
+
+    Session(String description, boolean lost) {
+      this.description = description;
+      this.lost = lost;
+    }
+  }
+
   /** Describes this server's session on the PID, which the agent's list does not include. */
-  private static String connectedSession(String pid) {
+  private static Session connectedSession(String pid) {
     int port = ClientManager.sessionPort(pid);
     if (port < 0) {
-      return "none";
+      return new Session("none", false);
     }
     ProbeOutput output = ClientManager.getOutput(pid, port);
     if (output == null || !output.isFinished()) {
-      return "a probe on port " + port + " (stop with exit_probe)";
+      return new Session("a probe on port " + port + " (stop with exit_probe)", false);
     }
     return output.hasExited()
-        ? "none (the probe on port " + port + " exited)"
-        : "none (the connection to the probe on port "
-            + port
-            + " was lost; if it is still running, it is listed as detached)";
+        ? new Session("none (the probe on port " + port + " exited)", false)
+        : new Session(
+            "none (the connection to the probe on port "
+                + port
+                + " was lost; if it is still running, it is listed as detached)",
+            true);
+  }
+
+  private static String rootMessage(Throwable e) {
+    Throwable cause = e;
+    while (cause.getCause() != null && cause.getMessage() == null) {
+      cause = cause.getCause();
+    }
+    return cause.getMessage();
   }
 
   private static void closeQuietly(BTraceClient client) {

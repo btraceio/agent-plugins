@@ -248,7 +248,7 @@ class McpServerE2ETest {
     assertSuccess(result);
     assertTrue(text(result).contains(RUNNING_PROBE));
     assertTrue(
-        text(result).contains("Connected through this MCP server: none"),
+        text(result).contains("Connected through this MCP server: none\n"),
         "the detached probe is not this server's session:\n" + text(result));
     assertTrue(server.isAlive(), "list_probes terminated the MCP server");
   }
