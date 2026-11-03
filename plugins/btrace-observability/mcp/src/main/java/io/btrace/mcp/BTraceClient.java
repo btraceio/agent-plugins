@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class BTraceClient {
   private static final Logger log = LoggerFactory.getLogger(BTraceClient.class);
+  private static final int CONNECTION_LOST_EXIT_CODE = -1;
   private static final String JAR_PATH_PROPERTY = "btrace.jar.path";
   // Older clients say "unavailable"; newer ones say "is in use" and advise the CLI's -p flag
   private static final Pattern PORT_UNAVAILABLE =
@@ -156,6 +157,17 @@ public final class BTraceClient {
    */
   public Thread submitInBackground(
       String host, String fileName, byte[] code, String[] args, CommandListener listener) {
+    return submitInBackground(host, fileName, code, args, listener, () -> {});
+  }
+
+  /** Like the method above; {@code onEnd} runs when the command loop ends, however that happens. */
+  public Thread submitInBackground(
+      String host,
+      String fileName,
+      byte[] code,
+      String[] args,
+      CommandListener listener,
+      Runnable onEnd) {
     Thread thread =
         new Thread(
             () -> {
@@ -163,6 +175,8 @@ public final class BTraceClient {
                 submit(host, fileName, code, args, listener);
               } catch (Exception e) {
                 log.debug("Probe command loop for {} ended", fileName, e);
+              } finally {
+                onEnd.run();
               }
             },
             "btrace-probe-" + fileName);
@@ -214,6 +228,24 @@ public final class BTraceClient {
 
   public int commandConstant(String name) throws Exception {
     return commandClass.getField(name).getInt(null);
+  }
+
+  /**
+   * Keeps what a running probe sends for later tools. An EXIT with this code does not come from the
+   * agent: the client makes it up when the connection drops, and the agent keeps that probe running.
+   */
+  public void recordProbeCommand(Object command, ProbeOutput output) throws Exception {
+    if (commandType(command) != commandConstant("EXIT")) {
+      output.append(printableText(command));
+    } else if (exitCode(command) == CONNECTION_LOST_EXIT_CODE) {
+      output.finish();
+    } else {
+      output.exited();
+    }
+  }
+
+  private static int exitCode(Object command) throws Exception {
+    return ((Number) command.getClass().getMethod("getExitCode").invoke(command)).intValue();
   }
 
   public String printableText(Object command) throws Exception {

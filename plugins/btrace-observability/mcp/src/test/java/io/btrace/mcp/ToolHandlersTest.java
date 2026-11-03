@@ -13,6 +13,7 @@ import io.btrace.mcp.tools.ListJvmsHandler;
 import io.btrace.mcp.tools.ListProbesHandler;
 import io.btrace.mcp.tools.ReadProbeOutputHandler;
 import io.btrace.mcp.tools.SendEventHandler;
+import io.btrace.mcp.tools.StopDetachedProbeHandler;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -159,6 +160,180 @@ class ToolHandlersTest {
     } finally {
       Client.laterOutput.clear();
     }
+  }
+
+  @Test
+  void refusesASecondDeployWhileAProbeIsRunning() {
+    Map<String, Object> first = deployOneliner("60", 2060);
+    assertFalse((Boolean) first.get("isError"), text(first));
+    BTraceClient running = ClientManager.getExistingClient("60", 2060);
+
+    assertError(deployOneliner("60", 2060), "already running on PID 60");
+    assertError(
+        DeployScriptHandler.execute(Map.of("pid", "60", "script", "class Trace {}", "port", 2060)),
+        "already running on PID 60");
+
+    assertTrue(ClientManager.getExistingClient("60", 2060) == running, "the first probe stays tracked");
+    assertFalse((Boolean) ExitProbeHandler.execute(Map.of("pid", "60", "port", 2060)).get("isError"));
+    assertFalse((Boolean) deployOneliner("60", 2060).get("isError"), "free again after exit_probe");
+    ExitProbeHandler.execute(Map.of("pid", "60", "port", 2060));
+  }
+
+  @Test
+  void aDifferentPidIsNotAffectedByARunningProbe() {
+    assertFalse((Boolean) deployOneliner("61", 2061).get("isError"));
+    assertFalse((Boolean) deployOneliner("62", 2061).get("isError"));
+    ExitProbeHandler.execute(Map.of("pid", "61", "port", 2061));
+    ExitProbeHandler.execute(Map.of("pid", "62", "port", 2061));
+  }
+
+  @Test
+  void aProbeThatExitedByItselfDoesNotBlockTheNextDeploy() throws Exception {
+    Client.exitOutput = "last words\n";
+    try {
+      assertFalse((Boolean) deployOneliner("63", 2063).get("isError"));
+      ClientManager.getExistingClient("63", 2063).sendExit(0);
+      assertTrue(ClientManager.getOutput("63", 2063).awaitFinished(5000));
+    } finally {
+      Client.exitOutput = "";
+    }
+
+    Map<String, Object> next = deployOneliner("63", 2063);
+    assertFalse((Boolean) next.get("isError"), text(next));
+    assertTrue(text(next).contains("last words"), "the unread output is not lost: " + text(next));
+    ExitProbeHandler.execute(Map.of("pid", "63", "port", 2063));
+  }
+
+  @Test
+  void aLostConnectionIsNotMistakenForAStoppedProbe() throws Exception {
+    Client.exitOutput = "";
+    assertFalse((Boolean) deployOneliner("64", 2064).get("isError"));
+    ProbeOutput output = ClientManager.getOutput("64", 2064);
+    ClientManager.getExistingClient("64", 2064).close();
+    assertTrue(output.awaitFinished(5000), "the end of the command loop finishes the session");
+
+    // The agent keeps a probe running when its client goes away, so the deploy must say so.
+    Map<String, Object> refused = deployOneliner("64", 2064);
+    assertError(refused, "may still be running");
+    assertTrue(text(refused).contains("list_probes"), text(refused));
+    assertTrue(text(refused).contains("stop_detached_probe"), text(refused));
+
+    // Retrying must not stack a second probe on one that may still be running.
+    assertError(deployOneliner("64", 2064), "may still be running");
+    assertTrue(ClientManager.getExistingClient("64", 2064) != null);
+
+    // list_probes shows the probe, so from here on it can be reached and the JVM is free.
+    assertFalse((Boolean) ListProbesHandler.execute(Map.of("pid", "64", "port", 2064)).get("isError"));
+    assertFalse((Boolean) deployOneliner("64", 2064).get("isError"));
+    ExitProbeHandler.execute(Map.of("pid", "64", "port", 2064));
+  }
+
+  @Test
+  void exitAfterALostConnectionDoesNotClaimTheProbeStopped() throws Exception {
+    assertFalse((Boolean) deployOneliner("65", 2065).get("isError"));
+    ProbeOutput output = ClientManager.getOutput("65", 2065);
+    ClientManager.getExistingClient("65", 2065).close();
+    assertTrue(output.awaitFinished(5000));
+
+    assertError(ExitProbeHandler.execute(Map.of("pid", "65", "port", 2065)), "may still be running");
+  }
+
+  @Test
+  void aFailedDeployKeepsTheUnreadOutputOfAProbeThatExited() throws Exception {
+    Client.exitOutput = "last words\n";
+    try {
+      assertFalse((Boolean) deployOneliner("66", 2066).get("isError"));
+      ClientManager.getExistingClient("66", 2066).sendExit(0);
+      assertTrue(ClientManager.getOutput("66", 2066).awaitFinished(5000));
+    } finally {
+      Client.exitOutput = "";
+    }
+
+    Client.failAttach = true;
+    try {
+      assertTrue((Boolean) deployOneliner("66", 2066).get("isError"));
+    } finally {
+      Client.failAttach = false;
+    }
+
+    Map<String, Object> read = ReadProbeOutputHandler.execute(Map.of("pid", "66", "port", 2066));
+    assertTrue(text(read).contains("last words"), text(read));
+  }
+
+  @Test
+  void exitWithoutConfirmationDoesNotClaimTheProbeStopped() {
+    assertFalse((Boolean) deployOneliner("67", 2067).get("isError"));
+    Client.ignoreExit = true;
+    try {
+      assertError(ExitProbeHandler.execute(Map.of("pid", "67", "port", 2067)), "did not confirm");
+      assertTrue(ClientManager.getExistingClient("67", 2067) != null, "exit_probe can be retried");
+    } finally {
+      Client.ignoreExit = false;
+    }
+    assertFalse((Boolean) ExitProbeHandler.execute(Map.of("pid", "67", "port", 2067)).get("isError"));
+  }
+
+  @Test
+  void exitOfAProbeThatAlreadyExitedSaysSo() throws Exception {
+    assertFalse((Boolean) deployOneliner("68", 2068).get("isError"));
+    ClientManager.getExistingClient("68", 2068).sendExit(0);
+    assertTrue(ClientManager.getOutput("68", 2068).awaitFinished(5000));
+
+    Map<String, Object> exit = ExitProbeHandler.execute(Map.of("pid", "68", "port", 2068));
+    assertFalse((Boolean) exit.get("isError"));
+    assertTrue(text(exit).contains("already exited"), text(exit));
+    assertTrue(ClientManager.getExistingClient("68", 2068) == null);
+  }
+
+  @Test
+  void toolsDoNotTreatAFinishedSessionAsARunningProbe() throws Exception {
+    assertFalse((Boolean) deployOneliner("69", 2069).get("isError"));
+    ClientManager.getExistingClient("69", 2069).sendExit(0);
+    assertTrue(ClientManager.getOutput("69", 2069).awaitFinished(5000));
+    assertError(DetachProbeHandler.execute(Map.of("pid", "69", "port", 2069)), "already exited");
+    assertError(SendEventHandler.execute(Map.of("pid", "69", "port", 2069)), "already exited");
+    assertTrue(
+        text(ReadProbeOutputHandler.execute(Map.of("pid", "69", "port", 2069))).contains("already exited"));
+    ExitProbeHandler.execute(Map.of("pid", "69", "port", 2069));
+
+    assertFalse((Boolean) deployOneliner("70", 2070).get("isError"));
+    ClientManager.getExistingClient("70", 2070).close();
+    assertTrue(ClientManager.getOutput("70", 2070).awaitFinished(5000));
+    assertError(DetachProbeHandler.execute(Map.of("pid", "70", "port", 2070)), "may still be running");
+    assertError(SendEventHandler.execute(Map.of("pid", "70", "port", 2070)), "may still be running");
+    assertTrue(
+        text(ReadProbeOutputHandler.execute(Map.of("pid", "70", "port", 2070)))
+            .contains("may still be running"));
+    ClientManager.removeClient("70", 2070);
+  }
+
+  @Test
+  void aDeployUnderAnotherPortIsStillRefused() {
+    assertFalse((Boolean) deployOneliner("71", 2071).get("isError"));
+    assertError(deployOneliner("71", 2072), "already running on PID 71");
+    ExitProbeHandler.execute(Map.of("pid", "71", "port", 2071));
+  }
+
+  @Test
+  void stoppingALostProbeFreesTheJvm() throws Exception {
+    assertFalse((Boolean) deployOneliner("72", 2072).get("isError"));
+    ProbeOutput output = ClientManager.getOutput("72", 2072);
+    ClientManager.getExistingClient("72", 2072).close();
+    assertTrue(output.awaitFinished(5000));
+    assertError(deployOneliner("72", 2072), "may still be running");
+
+    assertFalse(
+        (Boolean)
+            StopDetachedProbeHandler.execute(Map.of("pid", "72", "port", 2072, "probe_id", "p"))
+                .get("isError"));
+
+    assertFalse((Boolean) deployOneliner("72", 2072).get("isError"));
+    ExitProbeHandler.execute(Map.of("pid", "72", "port", 2072));
+  }
+
+  private static Map<String, Object> deployOneliner(String pid, int port) {
+    return DeployOnelinerHandler.execute(
+        Map.of("pid", pid, "oneliner", "orders.Api::create @return { print duration }", "port", port));
   }
 
   @Test

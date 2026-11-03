@@ -80,9 +80,33 @@ public final class ExitProbeHandler {
       }
 
       ProbeOutput output = ClientManager.getOutput(pid, port);
+      if (output != null && output.hasExited()) {
+        String unread = ClientManager.releaseFinished(pid);
+        return toolResult(
+            "The probe on PID "
+                + pid
+                + " already exited."
+                + ProbeOutput.section("Unread output", unread),
+            false);
+      }
+      String ended = ClientManager.endedSessionError(pid, port);
+      if (ended != null) {
+        return toolResult(ended, true);
+      }
+
       client.sendExit(0);
       if (output != null) {
         output.awaitFinished(EXIT_CONFIRM_MILLIS);
+        if (!output.hasExited()) {
+          ended = ClientManager.endedSessionError(pid, port);
+          return toolResult(
+              ended != null
+                  ? ended
+                  : "The agent did not confirm that the probe on PID "
+                      + pid
+                      + " exited, so it may still be running. Call exit_probe again.",
+              true);
+        }
       }
       ClientManager.removeClient(pid, port);
       // sendExit only sends the command; close the socket so it is not leaked.

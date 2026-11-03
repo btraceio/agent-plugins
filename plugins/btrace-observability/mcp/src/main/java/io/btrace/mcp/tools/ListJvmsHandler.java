@@ -18,6 +18,8 @@ package io.btrace.mcp.tools;
 
 import com.sun.tools.attach.VirtualMachine;
 import com.sun.tools.attach.VirtualMachineDescriptor;
+import io.btrace.mcp.ClientManager;
+import io.btrace.mcp.ProbeOutput;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -29,6 +31,9 @@ import org.slf4j.LoggerFactory;
 /** Handles the list_jvms MCP tool - lists all attachable Java VMs. */
 public final class ListJvmsHandler {
   private static final Logger log = LoggerFactory.getLogger(ListJvmsHandler.class);
+
+  /** Stands in for the agent's port when the JVM could not be attached to. */
+  static final String ATTACH_FAILED = "attach-failed";
 
   private ListJvmsHandler() {}
 
@@ -59,7 +64,7 @@ public final class ListJvmsHandler {
           sb.append(
               String.format(
                   "  PID: %s  |  Main Class: %s  |  BTrace: %s\n",
-                  vm.get("pid"), vm.get("mainClass"), vm.get("btraceAttached")));
+                  vm.get("pid"), vm.get("mainClass"), vm.get("btrace")));
         }
       }
       return toolResult(sb.toString(), false);
@@ -86,7 +91,7 @@ public final class ListJvmsHandler {
         Map<String, Object> vmInfo = new LinkedHashMap<>();
         vmInfo.put("pid", pid);
         vmInfo.put("mainClass", mainClass);
-        vmInfo.put("btraceAttached", hasBTraceServer(numericPid) ? "attached" : "not attached");
+        vmInfo.put("btrace", status(pid, agentPort(numericPid)));
         result.add(vmInfo);
       }
     } catch (Exception e) {
@@ -95,13 +100,33 @@ public final class ListJvmsHandler {
     return result;
   }
 
-  private static boolean hasBTraceServer(int pid) {
+  /**
+   * Describes BTrace in a JVM. Once loaded the agent stays for the life of the JVM whether or not a
+   * probe runs, and only this server's own sessions are known here: detached probes and those of
+   * other clients are not, so this never says that no probe is running.
+   */
+  static String status(String pid, String agentPort) {
+    int port = ClientManager.sessionPort(pid);
+    ProbeOutput output = port < 0 ? null : ClientManager.getOutput(pid, port);
+    if (port >= 0 && (output == null || !output.hasExited())) {
+      return "agent loaded, probe deployed through this server";
+    }
+    if (ATTACH_FAILED.equals(agentPort)) {
+      return "unknown (could not attach)";
+    }
+    return agentPort == null
+        ? "no agent"
+        : "agent loaded, no probe from this server (list_probes shows detached ones)";
+  }
+
+  /** Returns the port of the JVM's BTrace agent, null if it has none, or {@link #ATTACH_FAILED}. */
+  private static String agentPort(int pid) {
     com.sun.tools.attach.VirtualMachine vm = null;
     try {
       vm = com.sun.tools.attach.VirtualMachine.attach(String.valueOf(pid));
-      return vm.getSystemProperties().containsKey("btrace.port");
+      return vm.getSystemProperties().getProperty("btrace.port");
     } catch (Throwable ignored) {
-      return false;
+      return ATTACH_FAILED;
     } finally {
       if (vm != null) {
         try {

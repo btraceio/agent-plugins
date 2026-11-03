@@ -53,6 +53,10 @@ configurations {
 
 dependencies {
     e2eTestImplementation sourceSets.main.output
+    // For the test that drives the real client in-process; the server itself gets the JAR below
+    if (btraceJar.isPresent()) {
+        e2eTestRuntimeOnly files(btraceJar.get())
+    }
 }
 
 tasks.register('e2eTest', Test) {

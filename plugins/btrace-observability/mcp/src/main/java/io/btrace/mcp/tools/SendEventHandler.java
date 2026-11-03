@@ -86,6 +86,11 @@ public final class SendEventHandler {
             true);
       }
 
+      String ended = ClientManager.endedSessionError(pid, port);
+      if (ended != null) {
+        return toolResult(ended, true);
+      }
+
       if (eventName != null && !eventName.isEmpty()) {
         client.sendEvent(eventName);
         return toolResult("Event '" + eventName + "' sent to PID " + pid, false);

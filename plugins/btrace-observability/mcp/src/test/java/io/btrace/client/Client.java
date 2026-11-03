@@ -1,6 +1,7 @@
 package io.btrace.client;
 
 import io.btrace.core.comm.Command;
+import io.btrace.core.comm.ExitCommand;
 import io.btrace.core.comm.CommandListener;
 import io.btrace.core.comm.FakePrintableCommand;
 import java.io.PrintWriter;
@@ -14,6 +15,8 @@ public class Client {
   public static final List<String> laterOutput = new ArrayList<>();
   /** What a probe prints while it shuts down after an exit request. */
   public static String exitOutput = "";
+  public static boolean failAttach = false;
+  public static boolean ignoreExit = false;
   public final int port;
   public String attachedPid;
   public int exitCode;
@@ -24,6 +27,7 @@ public class Client {
   public String exitedProbe;
   private final CountDownLatch closeLatch = new CountDownLatch(1);
   private CommandListener listener;
+  private volatile boolean exited;
 
   public Client(int port) {
     this.port = port;
@@ -36,6 +40,9 @@ public class Client {
 
   public void attach(String pid, String systemClassPath, String bootstrapClassPath)
       throws java.io.IOException {
+    if (failAttach) {
+      throw new java.io.IOException("attach failed");
+    }
     if (pid.equals("port-busy")) {
       throw new java.io.IOException("Port " + port + " unavailable.");
     }
@@ -63,6 +70,11 @@ public class Client {
     }
     // Like the real client, keep running the probe command loop until the client is closed.
     closeLatch.await();
+    // Like the real client, report a closed connection as an exit with code -1.
+    if (!exited) {
+      exited = true;
+      listener.onCommand(new ExitCommand(-1));
+    }
   }
 
   public void connectAndListProbes(String host, CommandListener listener) throws Exception {
@@ -83,7 +95,11 @@ public class Client {
       if (!exitOutput.isEmpty()) {
         listener.onCommand(new FakePrintableCommand(Command.MESSAGE, exitOutput));
       }
-      listener.onCommand(new Command(Command.EXIT));
+      if (ignoreExit) {
+        return;
+      }
+      exited = true;
+      listener.onCommand(new ExitCommand(code));
     }
   }
 
