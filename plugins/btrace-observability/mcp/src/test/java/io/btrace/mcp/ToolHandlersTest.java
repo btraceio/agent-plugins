@@ -75,7 +75,7 @@ class ToolHandlersTest {
 
     Map<String, Object> probes = ListProbesHandler.execute(Map.of("pid", "53", "port", 2053));
     assertFalse((Boolean) probes.get("isError"));
-    assertTrue(text(probes).contains("Active probes on PID 53"));
+    assertTrue(text(probes).contains("Probes on PID 53"));
   }
 
   @Test
