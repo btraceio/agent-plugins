@@ -24,6 +24,9 @@ plugins/perf-engineer/scripts/PerfEngineerSession.java stop <session-id>
 plugins/perf-engineer/scripts/PerfEngineerSession.java cleanup <session-id>
 ```
 
+`cleanup` deletes the recording, including one at the path you gave to `--output`, so copy it first if
+you want to keep it. It keeps the session manifest in `~/.perf-engineer/sessions/<session-id>/`.
+
 The scripts are executable JBang programs; if the executable bit is lost (for example on a Windows
 checkout), run them as `jbang plugins/perf-engineer/scripts/PerfEngineerSession.java <args>` instead.
 

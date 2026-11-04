@@ -1,6 +1,6 @@
 ---
 name: btrace-observability
-description: Use when a user wants to understand live Java application behavior with BTrace. Coordinate the bundled endpoint, latency, failure, runtime-access, lifecycle, and data-safety skills to answer the incident question.
+description: Start here for any question about a live or running Java application, such as why a service, endpoint, pod, or method is slow or failing, or how to observe or attach to a JVM. Confirms the target and coordinates the endpoint, latency, failure, runtime-access, lifecycle, and data-safety skills.
 ---
 
 # BTrace Observability
@@ -8,6 +8,13 @@ description: Use when a user wants to understand live Java application behavior 
 This is the coordinator for the `btrace-observability` plugin. Help users answer a runtime
 question without requiring BTrace expertise. Translate their wording into a probe plan, then load
 and combine the specialist skills below as needed.
+
+## Before attaching
+
+Attach only to a target the user named. If the question does not identify the JVM by PID, pod, or
+host, ask for it before listing or attaching; never pick one from a local JVM list by guesswork. When
+listing JVMs helps, show the candidates and have the user choose. Load `btrace-data-safety` before
+any probe on a production or shared JVM.
 
 ## Skill composition
 

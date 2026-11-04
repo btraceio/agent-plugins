@@ -54,5 +54,5 @@ Supported formats:
   .otlp             OpenTelemetry profiles
   .hprof            Java heap dump
 
-Requires: Jafar MCP running — start with: jbang jafar-mcp@btraceio
+Requires: Jafar MCP running — start with: jbang jfr-mcp@btraceio --stdio --attach
 ```
