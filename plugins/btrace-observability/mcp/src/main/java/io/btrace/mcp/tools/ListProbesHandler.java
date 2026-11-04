@@ -18,17 +18,23 @@ package io.btrace.mcp.tools;
 
 import io.btrace.mcp.BTraceClient;
 import io.btrace.mcp.ClientManager;
-import java.io.StringWriter;
+import io.btrace.mcp.ProbeOutput;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Handles the list_probes MCP tool - lists active probes on a JVM. */
+/**
+ * Handles the list_probes MCP tool. The agent lists only probes no client is connected to, so the
+ * probe this server's own session holds is reported from {@link ClientManager}. A probe another
+ * client (a btrace CLI, another MCP server) is connected to appears in neither list.
+ */
 public final class ListProbesHandler {
   private static final Logger log = LoggerFactory.getLogger(ListProbesHandler.class);
   private static final int DEFAULT_PORT = 2020;
@@ -40,7 +46,10 @@ public final class ListProbesHandler {
   public static Map<String, Object> schema() {
     Map<String, Object> tool = new LinkedHashMap<>();
     tool.put("name", "list_probes");
-    tool.put("description", "List detached probes available to reconnect.");
+    tool.put(
+        "description",
+        "List the probe this server is connected to on a JVM and the detached probes still running"
+            + " there. Probes connected through another client are not listed.");
 
     Map<String, Object> properties = new LinkedHashMap<>();
 
@@ -67,6 +76,10 @@ public final class ListProbesHandler {
 
   /** Executes the list_probes tool. */
   public static Map<String, Object> execute(Map<String, Object> arguments) {
+    return execute(arguments, TimeUnit.SECONDS.toMillis(TIMEOUT_SECONDS));
+  }
+
+  static Map<String, Object> execute(Map<String, Object> arguments, long timeoutMillis) {
     String pid = getStringArg(arguments, "pid");
     int port = getIntArg(arguments, "port", DEFAULT_PORT);
 
@@ -74,33 +87,114 @@ public final class ListProbesHandler {
       return toolResult("Error: 'pid' parameter is required", true);
     }
 
+    // Read before listing. Only a session this listing reports as lost is forgotten afterwards; one
+    // that drops while the list is in flight is left for the next call to report.
+    Session session = connectedSession(pid);
+    String connectedLine = "Connected through this MCP server: " + session.description;
+    BTraceClient client = null;
     try {
-      BTraceClient client = ClientManager.getClient(port);
+      client = ClientManager.getClient(port);
       client.attach(pid, null, ".");
 
       StringBuilder output = new StringBuilder();
-      CountDownLatch latch = new CountDownLatch(1);
-
-      client.listProbes(
-          "localhost",
-          cmd -> {
-            output.append(client.printableText(cmd));
-            if (client.commandType(cmd) == client.commandConstant("LIST_PROBES")) {
-              latch.countDown();
-            }
-          });
-
-      boolean done = latch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
-      if (!done) {
-        return toolResult("Timed out waiting for probe list from PID " + pid, true);
+      BTraceClient lister = client;
+      // The client reads the reply with no timeout; never let an agent that does not answer block
+      // the request.
+      FutureTask<Void> list =
+          new FutureTask<>(
+              () -> {
+                lister.listProbes(
+                    "localhost", cmd -> output.append(lister.printableText(cmd)));
+                return null;
+              });
+      Thread listerThread = new Thread(list, "btrace-list-probes-" + pid);
+      listerThread.setDaemon(true);
+      listerThread.start();
+      try {
+        list.get(timeoutMillis, TimeUnit.MILLISECONDS);
+      } catch (TimeoutException e) {
+        return toolResult(
+            "Timed out waiting for probe list from PID " + pid + "\n" + connectedLine, true);
+      } catch (ExecutionException e) {
+        throw e.getCause() instanceof Exception ? (Exception) e.getCause() : e;
       }
 
-      ClientManager.forgetLostSession(pid);
-      String resultText = "Active probes on PID " + pid + ":\n" + output.toString();
+      if (session.lost) {
+        ClientManager.forgetLostSession(pid);
+      }
+      String detached = output.toString().trim();
+      String resultText =
+          "Probes on PID "
+              + pid
+              + ":\n"
+              + connectedLine
+              + "\n"
+              + "Detached (stop with stop_detached_probe): "
+              + (detached.isEmpty() ? "none" : "\n" + detached)
+              + "\n"
+              + "Probes connected through another client (a btrace CLI or another MCP server) are"
+              + " not listed.";
       return toolResult(resultText, false);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return toolResult(
+          "Interrupted while listing probes on PID " + pid + "\n" + connectedLine, true);
     } catch (Exception e) {
       log.error("Failed to list probes", e);
-      return toolResult("Error listing probes on PID " + pid + ": " + e.getMessage(), true);
+      return toolResult(
+          "Error listing probes on PID " + pid + ": " + rootMessage(e) + "\n" + connectedLine,
+          true);
+    } finally {
+      closeQuietly(client);
+    }
+  }
+
+  /** What this server's session on a PID looked like when the listing started. */
+  private static final class Session {
+    final String description;
+    final boolean lost;
+
+    Session(String description, boolean lost) {
+      this.description = description;
+      this.lost = lost;
+    }
+  }
+
+  /** Describes this server's session on the PID, which the agent's list does not include. */
+  private static Session connectedSession(String pid) {
+    int port = ClientManager.sessionPort(pid);
+    if (port < 0) {
+      return new Session("none", false);
+    }
+    ProbeOutput output = ClientManager.getOutput(pid, port);
+    if (output == null || !output.isFinished()) {
+      return new Session("a probe on port " + port + " (stop with exit_probe)", false);
+    }
+    return output.hasExited()
+        ? new Session("none (the probe on port " + port + " exited)", false)
+        : new Session(
+            "none (the connection to the probe on port "
+                + port
+                + " was lost; if it is still running, it is listed as detached)",
+            true);
+  }
+
+  private static String rootMessage(Throwable e) {
+    Throwable cause = e;
+    while (cause.getCause() != null && cause.getMessage() == null) {
+      cause = cause.getCause();
+    }
+    return cause.getMessage();
+  }
+
+  private static void closeQuietly(BTraceClient client) {
+    if (client == null) {
+      return;
+    }
+    try {
+      client.close();
+    } catch (Exception e) {
+      log.debug("Failed to close the list_probes client", e);
     }
   }
 

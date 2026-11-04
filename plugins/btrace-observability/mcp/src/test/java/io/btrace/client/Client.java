@@ -17,6 +17,10 @@ public class Client {
   public static String exitOutput = "";
   public static boolean failAttach = false;
   public static boolean ignoreExit = false;
+  /** An agent that never answers a probe list request: only closing the client ends the wait. */
+  public static boolean hangListProbes = false;
+  /** Runs while a probe list request is in flight, to model events that race with it. */
+  public static Runnable duringListProbes = null;
   public final int port;
   public String attachedPid;
   public int exitCode;
@@ -78,6 +82,13 @@ public class Client {
   }
 
   public void connectAndListProbes(String host, CommandListener listener) throws Exception {
+    if (hangListProbes) {
+      closeLatch.await();
+      return;
+    }
+    if (duringListProbes != null) {
+      duringListProbes.run();
+    }
     listener.onCommand(new FakePrintableCommand(Command.LIST_PROBES, host));
   }
 
