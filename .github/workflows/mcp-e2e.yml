@@ -28,7 +28,7 @@ permissions:
 
 # Move this pin once the daily run passes on a newer BTrace commit.
 env:
-  BTRACE_PIN: 79062f807c14bcb55edc214bbd7ac574f7aadb5b
+  BTRACE_PIN: 802d169365f1ab78b96ca69a78f3e9f27b036969
 
 concurrency:
   group: mcp-e2e-${{ github.ref }}

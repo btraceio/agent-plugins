@@ -152,6 +152,11 @@ class McpServerE2ETest {
     assertSuccess(result);
     assertTrue(text(result).contains("Script deployed successfully to PID " + pid));
     awaitCounter(RUNNING_PROBE, "processCalls", calls -> calls > 0);
+
+    // The agent lists only detached probes; list_probes must still show the one this server holds.
+    String listed = text(tool("list_probes"));
+    assertTrue(listed.contains("Connected through this MCP server: a probe on port"), listed);
+    assertFalse(listed.contains(RUNNING_PROBE), "a connected probe is listed as detached:\n" + listed);
   }
 
   @Test
@@ -242,6 +247,9 @@ class McpServerE2ETest {
     Map<String, Object> result = tool("list_probes");
     assertSuccess(result);
     assertTrue(text(result).contains(RUNNING_PROBE));
+    assertTrue(
+        text(result).contains("Connected through this MCP server: none\n"),
+        "the detached probe is not this server's session:\n" + text(result));
     assertTrue(server.isAlive(), "list_probes terminated the MCP server");
   }
 
