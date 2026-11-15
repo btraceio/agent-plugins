@@ -27,7 +27,7 @@ events/jdk.FileRead[bytes>1000 and path~"/tmp/.*"]
 Operators: `=` `!=` `>` `>=` `<` `<=` `~` (regex). Combine with `and`, `or`, `not` and
 parentheses. Functions usable inside a filter: `contains`, `startsWith`, `endsWith`,
 `matches(path,"re"[,"i"])`, `exists`, `empty`, `between(path,a,b)`, `len(path)`, and the
-time predicates `before`, `after`, `on`.
+time predicates `before`, `after`, `on` (see "Time filters" below).
 
 Filters can be interleaved at any segment:
 
@@ -59,6 +59,37 @@ events/jdk.JavaMonitorEnter[duration>1ms] | count()
 
 A bare number in a duration field is nanoseconds: `[duration>10000000]` is the same 10 ms.
 There is deliberately no `m` suffix for minutes, because `M` already means mebibytes.
+
+### Time filters
+
+An event's `startTime` is epoch nanoseconds. Compare it with a number, or use the time
+predicates with a datetime string:
+
+```
+events/jdk.ExecutionSample[after(startTime, "2024-08-13T16:00:00Z")]
+events/jdk.ExecutionSample[before(startTime, "2024-08-13T17:00:00Z")]
+events/jdk.ExecutionSample[between(startTime, "2024-08-13T16:00:00Z", "2024-08-13T17:00:00Z")]
+events/jdk.ExecutionSample[on(startTime, "2024-08-13")]
+events/jdk.JavaMonitorEnter[startTime>=<epochNanos> and duration>10ms]
+```
+
+`between` is inclusive. A datetime without `Z` or an offset, and the date given to `on`, are
+read in the server's local timezone — write the offset when the hour matters.
+
+These are JfrPath filters on epoch time. The `startTime` and `endTime` *parameters* of
+`jfr_use` and `jfr_tsa` are a different thing — nanoseconds from the recording's start; the
+`latency` skill covers them.
+
+**What a query costs on a large recording.** Two choices decide it, and neither changes the
+result:
+
+- **Name the event type.** Only the event types a query names are decoded, so a query for
+  one rare type does not pay for decoding the common ones.
+- **Put a lower bound on `startTime` in the root brackets.** `after(startTime, …)`,
+  `between(startTime, …)`, `on(startTime, …)`, `startTime>=N` and `startTime>N` let the
+  parser skip every chunk that ended before the bound. An upper bound alone
+  (`before(…)`, `startTime<=N`) skips nothing. Nor does a time condition inside a pipeline
+  `filter(…)`, or one joined to another field with `or` or `not` — combine with `and`.
 
 ### Pipeline operators
 
