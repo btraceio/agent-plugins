@@ -39,10 +39,37 @@ Each resource carries an `assessment`; `insights.bottlenecks[]` names the satura
 `queue_saturation` is the one most often missed: an executor whose queue depth grows means
 requests wait before any code runs for them. No amount of method optimisation fixes it.
 
-Narrow the window when the recording spans a mix of load levels:
+Narrow the window when the recording spans a mix of load levels. `jfr_use` and `jfr_tsa`
+take the same two optional bounds:
 
 ```
 jfr_use startTime=<ns> endTime=<ns> resources=threads
+jfr_tsa startTime=<ns> endTime=<ns> correlateBlocking=true
+```
+
+`startTime` and `endTime` are nanoseconds from the recording's start. An epoch-nanosecond
+timestamp — the `startTime` of an event, copied from a query result — is also accepted, so
+the events that bracket a spike can be used as the bounds directly. The window selects
+events by their start time.
+
+Confirm the window before reading the metrics. The result's `timeWindow` repeats
+`startTime` and `endTime` as given and adds `recordingStartEpochNanos`,
+`startTimeEpochNanos` and `endTimeEpochNanos`, which show how the bounds were interpreted.
+Check that they cover the interval you meant, and quote them in the report.
+
+- A `timeWindow` without those three fields comes from a server that predates this contract.
+  It compares the bounds with epoch timestamps as given, so offsets from the recording's
+  start select nothing. Do not report such a result as windowed.
+- If the recording's start cannot be read, the call fails rather than guessing. Report the
+  failure; do not substitute the whole-recording result.
+- `jfr_tsa` answering with only a `message` that no execution samples fell in the window
+  means the window is empty, not that the threads were idle.
+
+To run a `jfr_query` over the same window, put the two epoch values in the root brackets
+(see the `jfrpath` skill for why the lower bound belongs there):
+
+```
+jfr_query query="events/jdk.JavaMonitorEnter[startTime>=<startTimeEpochNanos> and startTime<=<endTimeEpochNanos>] | groupBy(monitorClass, agg=sum, value=duration) | top(10, by=value)"
 ```
 
 ## 3. Which lock?
