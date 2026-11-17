@@ -9,3 +9,4 @@
 - Moved `btrace-extensions-and-permissions` into `btrace-development`; extension authoring is build-time work, not incident diagnosis.
 - `btrace-extension-authoring` skill for designing a new extension against a target library.
 - `jafar-perf` `compare` skill covers the `jfr_compare` significance rules and thin-data results that follow jafar `v0.29.0`.
+- `btrace-observability` MCP server runs BTrace `3.0.0-RC1` from Maven Central instead of the 3.0.0 snapshot.
