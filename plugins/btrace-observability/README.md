@@ -46,7 +46,7 @@ All of these are bundled in this one plugin and may be combined for an incident:
 | Slow endpoint in one Kubernetes pod | endpoint diagnostics + latency analysis + runtime access + lifecycle + data safety |
 | Repeated 5xx failures on a VM reached by SSH | failure analysis + runtime access + lifecycle + data safety |
 | Quick check of a suspected hot method | oneliner triage + lifecycle + data safety |
-| Persistent distributed diagnostics | extensions and permissions + startup and packaging + runtime access + data safety |
+| Persistent distributed diagnostics | startup and packaging + runtime access + data safety |
 
 ## Scope and safety
 

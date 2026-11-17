@@ -484,9 +484,10 @@ public class PerfEngineerSession {
         if ("running".equals(state) || "starting".equals(state) || "stop-requested".equals(state)) {
             throw new ToolException("stop the session before cleanup");
         }
-        Files.deleteIfExists(Path.of((String) obj(manifest.get("profiler")).get("output")));
+        Path output = Path.of((String) obj(manifest.get("profiler")).get("output"));
+        Files.deleteIfExists(output);
         Files.deleteIfExists(loaded.session().resolve("supervisor.log"));
-        System.out.println(JSON.writeValueAsString(mapOf("session_id", manifest.get("session_id"), "state", state, "cleaned", true)));
+        System.out.println(JSON.writeValueAsString(mapOf("session_id", manifest.get("session_id"), "state", state, "cleaned", true, "removed_artifact", output.toString(), "retained_session_dir", loaded.session().toString())));
         return 0;
     }
 

@@ -57,7 +57,7 @@ Before promising a phase, verify that the required capability is actually availa
 
 This plugin currently provides the orchestration contract, not a bundled session-supervisor
 executable. A bounded one-recording supervisor is available at
-`scripts/PerfEngineerSession.java` (executable; runs via JBang); use it when async-profiler CLI access is available. It does not
+`scripts/PerfEngineerSession.java` (executable; runs via JBang); use it when async-profiler CLI access is available. Check for async-profiler through `ASYNC_PROFILER_HOME` as well as `PATH`, and prefer this supervisor to running `asprof` directly or falling back to JFR. It does not
 supervise BTrace or later analysis phases. If it is unavailable, use only a bounded recording with
 the hard timeout enforced by the recording command itself. Do not offer “until I say stop,” durable
 orphan recovery, or claim that a session is supervised. If a delegated plugin or host provides a
