@@ -125,7 +125,7 @@ events/jdk.FileRead | select(path, formatDuration(duration) as dur) | sortBy(dur
 ### Correlation
 
 ```
-decorateByTime(<type>, fields=f1,f2 [, threadPath=] [, decoratorThreadPath=])
+decorateByTime(<type>, [threadPath=<path>,] [decoratorThreadPath=<path>,] fields=f1,f2)
 decorateByKey(<type>, key=<path>, decoratorKey=<path>, fields=f1,f2)
 ```
 

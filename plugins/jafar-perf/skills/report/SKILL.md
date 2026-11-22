@@ -86,9 +86,10 @@ For a regression claim, both artifacts and the comparison call are the reproduct
 the `compare` skill.
 
 Name the jfr-mcp version in the reproduction. On a recording with more than one chunk, the
-`jfr_query` results of the pinned jfr-mcp 0.29.0 can come back short and differ from run to
-run: `count()`, `sum`, `stats`, `groupBy`, row listings and flame graphs. From the first
-release after 0.29.0 they are exact and repeatable. A small difference between two runs on
+pinned jfr-mcp 0.29.0 can return short results that differ from run to run: in `jfr_query`,
+`count()`, `sum`, `stats`, `groupBy`, row listings and `flamegraph()`, and the output of
+`jfr_flamegraph`, which runs the same query engine. From the first release after 0.29.0 they
+are exact and repeatable. A small difference between two runs on
 0.29.0 is therefore this defect, not a property of the recording.
 
 ## What a recommendation must contain

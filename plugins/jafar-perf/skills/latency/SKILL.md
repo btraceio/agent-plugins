@@ -1,7 +1,7 @@
 ---
 name: latency
 description: Investigate response-time problems that are not CPU-bound — lock contention, thread parking, executor queue saturation, blocking I/O, and per-endpoint latency attribution. Use when the user reports slow requests, p99 spikes, timeouts, deadlock suspicion, or when triage shows threads blocked rather than running.
-allowed-tools: mcp__plugin_jafar-perf_jafar__jfr_tsa mcp__plugin_jafar-perf_jafar__jfr_use mcp__plugin_jafar-perf_jafar__jfr_query mcp__plugin_jafar-perf_jafar__jfr_list_types mcp__plugin_jafar-perf_jafar__jfr_stackprofile mcp__plugin_jafar-perf_jafar__pprof_tsa
+allowed-tools: mcp__plugin_jafar-perf_jafar__jfr_tsa mcp__plugin_jafar-perf_jafar__jfr_use mcp__plugin_jafar-perf_jafar__jfr_query mcp__plugin_jafar-perf_jafar__jfr_flamegraph mcp__plugin_jafar-perf_jafar__jfr_list_types mcp__plugin_jafar-perf_jafar__jfr_stackprofile mcp__plugin_jafar-perf_jafar__pprof_tsa
 ---
 
 # Latency analysis
@@ -102,11 +102,18 @@ jfr_query query="events/jdk.JavaMonitorEnter | groupBy(monitorClass, agg=sum, va
 ```
 
 To find *what code* was contending, read the stack traces of the monitor events themselves.
-Each event records the stack of the thread that blocked or waited:
+Each event records the stack of the thread that blocked or waited. Build one graph per event
+type and keep them apart, as above:
 
 ```
 jfr_flamegraph eventType=jdk.JavaMonitorEnter direction=bottom-up format=folded
+jfr_flamegraph eventType=jdk.JavaMonitorWait direction=bottom-up format=folded
 ```
+
+The first shows where threads blocked acquiring a monitor, the second where they waited on a
+condition. `java.util.concurrent` locks and queues do neither; their waiting is
+`jdk.ThreadPark`, covered next, and `jfr_flamegraph eventType=jdk.ThreadPark` gives its code
+paths the same way.
 
 Do not use `jdk.ExecutionSample | decorateByTime(jdk.JavaMonitorWait, …)` for this.
 `decorateByTime` joins events that overlap in time **on the same thread**, and JFR takes no

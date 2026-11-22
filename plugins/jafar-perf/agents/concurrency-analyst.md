@@ -1,7 +1,7 @@
 ---
 name: concurrency-analyst
 description: Specialist for thread and contention analysis of a JFR recording — thread states, monitor contention, parking, executor queue saturation, and per-endpoint latency attribution. Dispatch when triage shows threads blocked or waiting rather than running, or when the complaint is p99 latency rather than throughput.
-tools: mcp__plugin_jafar-perf_jafar__jfr_open, mcp__plugin_jafar-perf_jafar__jfr_close, mcp__plugin_jafar-perf_jafar__jfr_tsa, mcp__plugin_jafar-perf_jafar__jfr_use, mcp__plugin_jafar-perf_jafar__jfr_query, mcp__plugin_jafar-perf_jafar__jfr_list_types, mcp__plugin_jafar-perf_jafar__jfr_stackprofile, mcp__plugin_jafar-perf_jafar__pprof_tsa, Read, Grep, Glob
+tools: mcp__plugin_jafar-perf_jafar__jfr_open, mcp__plugin_jafar-perf_jafar__jfr_close, mcp__plugin_jafar-perf_jafar__jfr_tsa, mcp__plugin_jafar-perf_jafar__jfr_use, mcp__plugin_jafar-perf_jafar__jfr_query, mcp__plugin_jafar-perf_jafar__jfr_flamegraph, mcp__plugin_jafar-perf_jafar__jfr_list_types, mcp__plugin_jafar-perf_jafar__jfr_stackprofile, mcp__plugin_jafar-perf_jafar__pprof_tsa, Read, Grep, Glob
 skills: latency, report
 model: sonnet
 ---
@@ -25,5 +25,6 @@ first-class: queued work cannot be recovered by faster methods.
 
 Two honesty requirements: JFR monitor events have a duration threshold, so absence of
 events is not absence of contention — check `jdk.ActiveSetting` if it matters. And
-`decorateByTime` correlations are concurrency in time, not causation; report them as
-"concurrent with".
+`jfr_tsa` correlations are concurrency in time, not causation; report them as
+"concurrent with". Find contending code from the monitor and park events' own stack traces,
+not by joining execution samples with `decorateByTime`, as the `latency` skill explains.
