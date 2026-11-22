@@ -57,7 +57,10 @@ A frame is worth reporting when all three hold:
    present in one bucket out of ten is an event, not a hotspot. The `steady-hotspot`
    category means it persisted.
 3. It is not an artifact of one thread doing something unrepresentative. Check
-   `threadCounts{}` in the same output.
+   `threadCounts{}` in the same output. Its keys are thread names. jfr-mcp 0.29.0, which this
+   plugin pins, prefers the OS name to the Java name. From the first release after 0.29.0,
+   the Java name of the sampled thread comes first, as in `jfr_tsa`. Do not match thread
+   labels across output from the two versions.
 
 ```
 jfr_stackprofile buckets=10 minPct=1.0

@@ -85,6 +85,12 @@ jfr_query query="events/jdk.JavaMonitorEnter | groupBy(monitorClass, agg=sum, va
 For a regression claim, both artifacts and the comparison call are the reproduction — see
 the `compare` skill.
 
+Name the jfr-mcp version in the reproduction. On a recording with more than one chunk, the
+`jfr_query` results of the pinned jfr-mcp 0.29.0 can come back short and differ from run to
+run: `count()`, `sum`, `stats`, `groupBy`, row listings and flame graphs. From the first
+release after 0.29.0 they are exact and repeatable. A small difference between two runs on
+0.29.0 is therefore this defect, not a property of the recording.
+
 ## What a recommendation must contain
 
 Not "reduce allocations" but: the file and line, the change, and the expected effect with

@@ -47,7 +47,10 @@ jfr_diagnose
 Returns `findings[]` and `recommendations[]`, and runs the USE and TSA analyses in-process so
 the resource and thread-state picture arrives with the first call. Treat its output as a
 *routing decision*, not a conclusion — it applies fixed thresholds and knows nothing about
-your service's normal behaviour.
+your service's normal behaviour. On the pinned jfr-mcp 0.29.0, the TSA pass files every
+`jdk.ExecutionSample` under one thread named `unknown`, so a finding about a single
+problematic thread is not evidence about any real thread. The `latency` skill explains how
+to recognise this.
 
 Read `capabilityGaps` before you believe a negative result. "ALLOCATION PROFILING: Not
 enabled in this recording" means you cannot conclude anything about allocation, not that

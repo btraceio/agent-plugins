@@ -77,11 +77,12 @@ events/jdk.JavaMonitorEnter[startTime>=<epochNanos> and duration>10ms]
 read in the server's local timezone — write the offset when the hour matters.
 
 These are JfrPath filters on epoch time. The `startTime` and `endTime` *parameters* of
-`jfr_use` and `jfr_tsa` are a different thing — nanoseconds from the recording's start; the
-`latency` skill covers them.
+`jfr_use` and `jfr_tsa` are read differently depending on the server version. The `latency`
+skill covers them.
 
-**What a query costs on a large recording.** Two choices decide it, and neither changes the
-result:
+**What a query costs on a large recording.** From the first release after 0.29.0, two
+choices decide it. Neither changes the result, and both are harmless on the pinned
+jfr-mcp 0.29.0, which decodes every event of every chunk whatever the query:
 
 - **Name the event type.** Only the event types a query names are decoded, so a query for
   one rare type does not pay for decoding the common ones.
@@ -128,8 +129,23 @@ decorateByTime(<type>, fields=f1,f2 [, threadPath=] [, decoratorThreadPath=])
 decorateByKey(<type>, key=<path>, decoratorKey=<path>, fields=f1,f2)
 ```
 
-`decorateByTime` matches events overlapping in time **on the same thread** (thread path
-defaults to `eventThread/javaThreadId`). `decorateByKey` joins on a shared correlation id —
+`decorateByTime` matches events overlapping in time **on the same thread**. How the thread
+is found when `threadPath`/`decoratorThreadPath` are omitted depends on the server version:
+
+- **jfr-mcp 0.29.0, which this plugin pins:** `eventThread/javaThreadId` on both sides.
+  `jdk.ExecutionSample` and `jdk.NativeMethodSample` have no `eventThread`; their thread is
+  `sampledThread`. With these samples as either side, nothing matches unless you name the
+  path, e.g. `threadPath=sampledThread/javaThreadId`. On 0.29.0, put every named parameter
+  **before** `fields=`. A parameter after `fields=` is read as one more field name.
+- **From the first release after 0.29.0:** each event's own thread, `sampledThread` for
+  samples, else `eventThread`, and a named parameter after `fields=` parses.
+
+The same rule applies to filters and grouping. `sampledThread/javaName` and
+`sampledThread/javaThreadId` are the thread of a sample, and `eventThread/…` is null for
+every `jdk.ExecutionSample` and `jdk.NativeMethodSample`. Other events, including
+`datadog.ExecutionSample`, carry `eventThread`.
+
+`decorateByKey` joins on a shared correlation id —
 prefer it when one exists, as it is exact and cheaper. Decorated fields are read with the
 `$decorator.` prefix and work in `groupBy`, `select` and filters.
 

@@ -10,3 +10,4 @@
 - `btrace-extension-authoring` skill for designing a new extension against a target library.
 - `jafar-perf` `compare` skill covers the `jfr_compare` significance rules and thin-data results that follow jafar `v0.29.0`.
 - `btrace-observability` MCP server runs BTrace `3.0.0-RC1` from Maven Central instead of the 3.0.0 snapshot.
+- `jafar-perf` skills say how the pinned jfr-mcp `0.29.0` attributes samples to threads, reads `jfr_use`/`jfr_tsa` time windows and counts multi-chunk results, and what changes from the first release after it (btraceio/jafar #204, #206, #248).

@@ -13,7 +13,10 @@ If you were not given an open session id, open the artifact yourself and close i
 
 Run `jfr_tsa` with `correlateBlocking=true` first and read `stateDistribution` before
 anything else — if the recording is RUNNABLE-dominated this is a CPU question and you
-should say so rather than manufacturing a contention story.
+should say so rather than manufacturing a contention story. If one thread named `unknown`
+holds every sample, the result came from the pinned jfr-mcp 0.29.0. That release cannot
+attribute `jdk.ExecutionSample` samples to threads, so report no per-thread findings or
+`totalThreads` from it (see the `latency` skill).
 
 Keep `jdk.JavaMonitorEnter` (blocked acquiring) separate from `jdk.JavaMonitorWait`
 (waiting on a condition); they mean different things. Rank monitors by summed duration
