@@ -93,14 +93,25 @@ jfr_flamegraph eventType=jdk.ObjectAllocationSample direction=bottom-up format=f
 not the bytes of that one object. Report it as an estimated rate (MB/s), never as an exact
 total.
 
-## 5. What is running during GC
+## 5. Collector cost versus application cost
+
+Execution samples cannot show what the collector costs. JFR samples Java threads only, so GC
+worker threads never appear in `jdk.ExecutionSample`, and a stop-the-world pause stops the
+Java threads it would sample. Do not join samples with GC phase events through
+`decorateByTime`: it matches events on the same thread, and GC phases are recorded on GC
+threads, so almost nothing matches.
+
+Read the collector's CPU time from `jdk.GCCPUTime` (present in JDK 21 recordings) when `jfr_list_types`
+shows it:
 
 ```
-jfr_query query="events/jdk.ExecutionSample | decorateByTime(jdk.GCPhase, fields=name) | groupBy($decorator.name, agg=count)"
+jfr_query query="events/jdk.GCCPUTime | stats(userTime)"
+jfr_query query="events/jdk.GCCPUTime | stats(systemTime)"
 ```
 
-Useful for separating application cost from collector cost when a profile looks unexpectedly
-hot in JVM-internal frames.
+The pause share of wall clock from step 1 covers the time application threads lost. A
+profile hot in JVM-internal frames on application threads is usually allocation slow paths:
+read it with the allocation flame graph in step 4.
 
 ## Recommendations worth making
 

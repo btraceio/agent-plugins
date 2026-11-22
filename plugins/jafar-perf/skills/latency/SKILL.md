@@ -1,7 +1,7 @@
 ---
 name: latency
 description: Investigate response-time problems that are not CPU-bound — lock contention, thread parking, executor queue saturation, blocking I/O, and per-endpoint latency attribution. Use when the user reports slow requests, p99 spikes, timeouts, deadlock suspicion, or when triage shows threads blocked rather than running.
-allowed-tools: mcp__plugin_jafar-perf_jafar__jfr_tsa mcp__plugin_jafar-perf_jafar__jfr_use mcp__plugin_jafar-perf_jafar__jfr_query mcp__plugin_jafar-perf_jafar__jfr_list_types mcp__plugin_jafar-perf_jafar__jfr_stackprofile mcp__plugin_jafar-perf_jafar__pprof_tsa
+allowed-tools: mcp__plugin_jafar-perf_jafar__jfr_tsa mcp__plugin_jafar-perf_jafar__jfr_use mcp__plugin_jafar-perf_jafar__jfr_query mcp__plugin_jafar-perf_jafar__jfr_flamegraph mcp__plugin_jafar-perf_jafar__jfr_list_types mcp__plugin_jafar-perf_jafar__jfr_stackprofile mcp__plugin_jafar-perf_jafar__pprof_tsa
 ---
 
 # Latency analysis
@@ -26,6 +26,18 @@ Thread State Analysis returns:
 Read `stateDistribution` first. If most time is `RUNNABLE`, this is a CPU problem — switch to
 the `cpu` skill. If it is dominated by blocked, waiting or parked states, continue here.
 
+Check the thread attribution before reading the per-thread fields. jfr-mcp 0.29.0, the
+version this plugin pins, reads each sample's thread from `eventThread`, which
+`jdk.ExecutionSample` and `jdk.NativeMethodSample` do not have. On a recording with those
+samples it files every sample under one thread named `unknown`, so `threadProfiles`,
+`topThreadsByState` and `totalThreads` describe that one pseudo-thread, and the active-thread
+count of `jfr_use` is wrong for the same reason. `stateDistribution` is still usable, because
+it does not depend on the thread. Recordings whose samples carry `eventThread`, such as
+`datadog.ExecutionSample`, are not affected. From the first release after 0.29.0, samples are
+attributed to their `sampledThread`; events without one, such as `jdk.JavaMonitorEnter` in
+`correlations`, still use `eventThread`. A single `unknown` thread holding all the samples
+therefore identifies a 0.29.0 result: do not report its per-thread findings.
+
 ## 2. Which resource is saturated?
 
 ```
@@ -43,25 +55,32 @@ Narrow the window when the recording spans a mix of load levels. `jfr_use` and `
 take the same two optional bounds:
 
 ```
-jfr_use startTime=<ns> endTime=<ns> resources=threads
-jfr_tsa startTime=<ns> endTime=<ns> correlateBlocking=true
+jfr_use startTime=<epochNanos> endTime=<epochNanos> resources=threads
+jfr_tsa startTime=<epochNanos> endTime=<epochNanos> correlateBlocking=true
 ```
 
-`startTime` and `endTime` are nanoseconds from the recording's start. An epoch-nanosecond
-timestamp — the `startTime` of an event, copied from a query result — is also accepted, so
-the events that bracket a spike can be used as the bounds directly. The window selects
-events by their start time.
+Pass epoch-nanosecond bounds: the `startTime` of an event, copied from a query result, such
+as the events that bracket a spike. The window selects events by their start time. How a
+bound is read depends on the server version:
 
-Confirm the window before reading the metrics. The result's `timeWindow` repeats
-`startTime` and `endTime` as given and adds `recordingStartEpochNanos`,
-`startTimeEpochNanos` and `endTimeEpochNanos`, which show how the bounds were interpreted.
-Check that they cover the interval you meant, and quote them in the report.
+- **jfr-mcp 0.29.0, which this plugin pins,** compares the bounds directly with event start
+  times, which are epoch nanoseconds. Epoch bounds therefore work. An offset from the
+  recording's start does not: as `startTime` it excludes nothing, and as `endTime` it
+  excludes every event.
+- **From the first release after 0.29.0,** `startTime` and `endTime` are nanoseconds from the
+  recording's start, and a value at or after the recording's start is read as an epoch
+  timestamp. Epoch bounds therefore work on both versions.
 
-- A `timeWindow` without those three fields comes from a server that predates this contract.
-  It compares the bounds with epoch timestamps as given, so offsets from the recording's
-  start select nothing. Do not report such a result as windowed.
-- If the recording's start cannot be read, the call fails rather than guessing. Report the
-  failure; do not substitute the whole-recording result.
+Confirm the window before reading the metrics, and quote it in the report. From the first
+release after 0.29.0, the result's `timeWindow` repeats `startTime` and `endTime` as given
+and adds `recordingStartEpochNanos`, `startTimeEpochNanos` and `endTimeEpochNanos`, which
+show how the bounds were read. Check that the last two cover the interval you meant.
+
+- A `timeWindow` with only `startTime` and `endTime` comes from 0.29.0. The window was
+  applied as given, so it is right only if both bounds were epoch nanoseconds from this
+  recording. A result for offset bounds is not windowed: do not report it as such.
+- From the first release after 0.29.0, if the recording's start cannot be read, the call fails
+  rather than guessing. Report the failure; do not substitute the whole-recording result.
 - `jfr_tsa` answering with only a `message` that no execution samples fell in the window
   means the window is empty, not that the threads were idle.
 
@@ -82,17 +101,26 @@ them.
 jfr_query query="events/jdk.JavaMonitorEnter | groupBy(monitorClass, agg=sum, value=duration) | top(10, by=value)"
 ```
 
-To find *what code* was contending, correlate execution samples with the wait window on the
-same thread:
+To find *what code* was contending, read the stack traces of the monitor events themselves.
+Each event records the stack of the thread that blocked or waited. Build one graph per event
+type and keep them apart, as above:
 
 ```
-jfr_query query="events/jdk.ExecutionSample | decorateByTime(jdk.JavaMonitorWait, fields=monitorClass,duration) | groupBy($decorator.monitorClass, agg=count) | top(10, by=count)"
+jfr_flamegraph eventType=jdk.JavaMonitorEnter direction=bottom-up format=folded
+jfr_flamegraph eventType=jdk.JavaMonitorWait direction=bottom-up format=folded
 ```
 
-`decorateByTime` joins events that overlap in time **on the same thread** (thread path
-defaults to `eventThread/javaThreadId`). Rows where `$decorator.monitorClass` is null were
-sampled outside any wait — that is the uncontended baseline, and it belongs in the report
-as the comparison.
+The first shows where threads blocked acquiring a monitor, the second where they waited on a
+condition. `java.util.concurrent` locks and queues do neither; their waiting is
+`jdk.ThreadPark`, covered next, and `jfr_flamegraph eventType=jdk.ThreadPark` gives its code
+paths the same way.
+
+Do not use `jdk.ExecutionSample | decorateByTime(jdk.JavaMonitorWait, …)` for this.
+`decorateByTime` joins events that overlap in time **on the same thread**, and JFR takes no
+execution sample of a thread while it waits, so almost every row comes back undecorated.
+Those rows do not show an uncontended baseline. On jfr-mcp 0.29.0 the default thread paths
+are `eventThread/javaThreadId` on both sides, and execution samples have no `eventThread`, so
+that join decorates no sample at all.
 
 ## 4. Parking and sleeping
 
